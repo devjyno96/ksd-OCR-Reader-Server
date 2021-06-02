@@ -4,24 +4,26 @@ from sqlalchemy.orm import Session
 
 # from ..models import test as test_models
 
-# from ..schemas import admin_dashboard as admin_dashboard_schemas
+from schemas import ocr as ocr_schemas
 
 import requests
 import time
 import json
 
-NAVER_OCR_URL = "312ab1aaaad04cb4907e2bdfb246bc67.apigw.ntruss.com/custom/v1/3870/40d9e6658a8a7c8b7d764aa349b635ea318d81480956aa066bccd98e5a61f074"
-NAVER_OCR_SECRET = "VXdEdFJDZ2lrWWdRZ2FmYUpWV25SWWVaT0VuZFNPU2Y="
+from resources.naver_ocr_domain_key import NAVER_OCR_DOMAIN_KEY as ocr_keys
 
 
-def ocr_request(s3_url: str, ocr_type: str):
-    print(ocr_type)
+def ocr_request(request: ocr_schemas.RequestOCR):
+    selected_ocr = ocr_keys[0]
+    for ocr_key in ocr_keys:
+        if ocr_key['category'] == request.ocr_type:
+            selected_ocr = ocr_key
     request_json = {
         'images': [
             {
-                'format': s3_url.split('.')[-1],
+                'format': request.s3_url.split('.')[-1],
                 'name': 'image',
-                'url': s3_url
+                'url': request.s3_url
             }
         ],
         'requestId': 'ocr-request',
@@ -31,10 +33,8 @@ def ocr_request(s3_url: str, ocr_type: str):
 
     payload = json.dumps(request_json).encode('UTF-8')
     headers = {
-        'X-OCR-SECRET': NAVER_OCR_SECRET,
+        'X-OCR-SECRET': selected_ocr['secret_key'],
         'Content-Type': 'application/json'
     }
-
-    return json.dumps(
-        requests.request("POST", 'https://{}/infer'.format(NAVER_OCR_URL), headers=headers, data=payload).json(),
-        ensure_ascii=False)
+    response = requests.post(url=selected_ocr['APIGW_Invoke_url'], headers=headers, data=payload)
+    return json.loads(response.text)

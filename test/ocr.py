@@ -10,12 +10,13 @@ class Order_1_OCR_Request_Test(unittest.TestCase):
     def setUp(self) -> None:
         self.host = 'http://localhost:8000/'
 
-    def test_1_Create_Audit_Program(self):
+    def test_1_Call_OCR(self):
         ocr_request_data = {
-            "s3_url": "https://s3.ap-northeast-2.amazonaws.com/ocr.image.ksd.hansung.ac.kr/1613142375245.jpg",
+            "s3_url": "http://s3.ap-northeast-2.amazonaws.com/ocr.image.ksd.hansung.ac.kr/1613142375245.jpg",
             "ocr_type": "D_IE",
         }
-        response = requests.post(self.host + 'ocr/', data=json.dumps(ocr_request_data))
+        # response = requests.post(self.host + 'ocr/', data=json.dumps(ocr_request_data))
+        response = requests.post(self.host + 'ocr/', data=ocr_request_data)
         print(json.loads(response.text))
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, msg="Ocr Request Error")
 

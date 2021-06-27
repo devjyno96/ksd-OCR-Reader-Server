@@ -36,5 +36,25 @@ def ocr_request(request: ocr_schemas.RequestOCR):
         'X-OCR-SECRET': selected_ocr['secret_key'],
         'Content-Type': 'application/json'
     }
+
     response = requests.post(url=selected_ocr['APIGW_Invoke_url'], headers=headers, data=payload)
+    print_result_on_terminal(response)
     return json.loads(response.text)
+
+
+def print_result_on_terminal(response):
+    dict_data = json.loads(response.text)
+    if dict_data['images'][0]['inferResult'] == 'SUCCESS':
+        result = []
+        for field in dict_data['images'][0]['fields']:
+            result.append({
+                # 'name': field['name'],
+                # 'inferText': field['inferText']
+                field['name']: field['inferText']
+            })
+    result_dict = {
+        'template_name': dict_data['images'][0]['matchedTemplate']['name'],
+        'results': result
+    }
+    from pprint import pprint
+    pprint(result_dict)

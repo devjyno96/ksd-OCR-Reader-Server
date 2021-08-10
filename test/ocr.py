@@ -16,7 +16,17 @@ class Order_1_OCR_Request_Test(unittest.TestCase):
             "ocr_type": "D_IE",
         }
         # response = requests.post(self.host + 'ocr/', data=json.dumps(ocr_request_data))
-        response = requests.post(self.host + 'ocr/', data=ocr_request_data)
+        # response = requests.post(self.host + 'ocr/', data=ocr_request_data)
+        response = requests.post(self.host + 'ocr/', json=ocr_request_data)
+        print(json.loads(response.text))
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, msg="Ocr Request Error")
+
+    def test_2_test_OCR(self):
+        ocr_request_data = {
+            "s3_url": "https://s3.ap-northeast-2.amazonaws.com/ocr.image.ksd.hansung.ac.kr/KakaoTalk_Image_2021-08-10-22-57-58.png",
+            "ocr_type": "D_IE",
+        }
+        response = requests.post(self.host + 'ocr/', json=ocr_request_data)
         print(json.loads(response.text))
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, msg="Ocr Request Error")
 
@@ -79,6 +89,7 @@ class Order_1_OCR_Request_Test(unittest.TestCase):
     #     response = requests.get(self.host + "all/")
     #     self.assertEqual(response.status_code, status.HTTP_200_OK, msg="Audit Program Get All Error")
     #
+
 
 if __name__ == "__main__":
     unittest.main(warnings='ignore')

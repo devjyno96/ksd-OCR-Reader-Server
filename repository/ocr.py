@@ -38,7 +38,7 @@ def ocr_request(request: ocr_schemas.RequestOCR):
     }
 
     response = requests.post(url=selected_ocr['APIGW_Invoke_url'], headers=headers, data=payload)
-    print_result_on_terminal(response)
+    # print_result_on_terminal(response)
     return json.loads(response.text)
 
 

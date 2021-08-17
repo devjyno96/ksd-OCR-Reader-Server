@@ -6,7 +6,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Enum, Uniq
 from sqlalchemy.orm import relationship
 
 from .models_function import get_now_time
-from ..database import Base
+from database import Base
 
 
 class User(Base):
@@ -36,7 +36,6 @@ class Profile(Base):
     user = relationship("User", back_populates="profile")
 
     email = Column(String, unique=True)
-    title = Column(String, nullable=True)
 
 
 class AdminUser(Base):

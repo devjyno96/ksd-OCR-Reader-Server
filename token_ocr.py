@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta
 
-from fastapi import Depends
 from fastapi_jwt_auth import AuthJWT
 
 from jose import JWTError, jwt

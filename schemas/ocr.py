@@ -9,3 +9,7 @@ class RequestOCR(BaseModel):
 
     # class Config():
     #     orm_mode = True
+
+
+class RequestOCRByUser(RequestOCR):
+    user_id: int

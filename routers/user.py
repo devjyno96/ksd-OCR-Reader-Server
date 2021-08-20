@@ -103,17 +103,6 @@ def change_pw(request: schemas.ChangePassword, db: Session = Depends(database.ge
     return user.change_password(request, db)
 
 
-@router.put('/password/init', status_code=status.HTTP_200_OK, summary='init_pw' + " | " + get_summary_location())
-def init_pw():
-    """
-    ### 설명
-    - password 초기화
-    - 아직 구현 안됨
-    ### 관련 모델
-    - User
-    """
-    pass
-
 
 @router.delete('/{user_id}', status_code=status.HTTP_204_NO_CONTENT, responses={
     404: {

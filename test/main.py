@@ -1,20 +1,20 @@
 import unittest
 
-# from models import manage
+from models import manage
 
-# def db_init():
-#     print('============Data Base Init Start============')
-#     manage.delete_all()
-#     manage.create_all()
-#     print('============Data Base Init Complete============')
+def db_init():
+    print('============Data Base Init Start============')
+    manage.delete_all()
+    manage.create_all()
+    print('============Data Base Init Complete============')
 
 
 def run_all_test():
-    # db_init()
+    db_init()
 
     print('============Unit Test Start============')
     testSuite = unittest.TestSuite()
-    module_strings = ['ocr'
+    module_strings = [ 'user' # , 'ocr'
                       ]
     [__import__(model_str) for model_str in module_strings]
     suites = [unittest.TestLoader().loadTestsFromName(model_str) for model_str in module_strings]

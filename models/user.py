@@ -1,11 +1,6 @@
-import datetime
-import enum
-
-from pytz import timezone
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Enum, UniqueConstraint, Boolean
+from sqlalchemy import Column, Integer, String, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 
-from .models_function import get_now_time
 from database import Base
 
 

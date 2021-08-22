@@ -5,7 +5,7 @@ from .models_function import get_now_time
 from database import Base
 
 
-class ocr_result(Base):
+class OcrResult(Base):
     __tablename__ = 'ocr_result'
     id = Column(Integer, primary_key=True, index=True)
     result_file_name = Column(String)
@@ -13,4 +13,4 @@ class ocr_result(Base):
 
     # User : Ocr_result = 1 : N
     user_id = Column(Integer, ForeignKey('users.id'))
-    ocr_result = relationship("User", back_populates="ocr_results", foreign_keys=[user_id])
+    ocr_results = relationship("User", back_populates="ocr_results", foreign_keys=[user_id])

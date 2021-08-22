@@ -4,6 +4,19 @@ import json
 
 from fastapi import status
 
+from models import user as user_models
+from models import manage
+import database
+
+from fastapi import status
+
+# Test code에서 사용하는 유저 리스트 받아오는 함수
+def get_user_list():
+    db = database.SessionLocal()
+    manage.create_all()  # 초기화 매핑
+    user_list = db.query(user_models.User).all()
+    return user_list
+
 
 class Order_1_User_Test(unittest.TestCase):
 

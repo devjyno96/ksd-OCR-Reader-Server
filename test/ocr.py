@@ -4,6 +4,7 @@ import json
 
 from fastapi import status
 
+from test import user
 
 class Order_1_OCR_Request_Test(unittest.TestCase):
 
@@ -30,6 +31,29 @@ class Order_1_OCR_Request_Test(unittest.TestCase):
         print(json.loads(response.text))
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, msg="Ocr Request Error")
 
+    def test_3_Request_OCR_By_User(self):
+        user_1 = user.get_user_list()[0]
+        ocr_request_data = {
+            "s3_url": "http://s3.ap-northeast-2.amazonaws.com/ocr.image.ksd.hansung.ac.kr/1613142375245.jpg",
+            "ocr_type": "D_IE",
+            "user_id" : user_1.id
+        }
+        response = requests.post(self.host + 'ocr/user', json=ocr_request_data)
+        print(json.loads(response.text))
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, msg="Ocr Request Error")
+        pass
+
+    def test_4_Get_OCR_Result_By_OCR_ID(self):
+        pass
+
+    def test_4_Get_OCR_Result_By_User(self):
+        pass
+
+    def test_5_Get_OCR_Result_All(self):
+        pass
+
+    def test_6_Delete_OCR_Result(self):
+        pass
     #     def test_2_Get_Audit_Program(self):
     #     data = {
     #         "id": 1

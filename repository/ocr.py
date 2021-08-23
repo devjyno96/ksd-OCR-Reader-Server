@@ -2,8 +2,8 @@ import sqlalchemy
 from fastapi import HTTPException, status, Response
 from sqlalchemy.orm import Session
 
-# from ..models import test as test_models
-
+from models import ocr as ocr_models
+from models import user as user_models
 from schemas import ocr as ocr_schemas
 
 import requests
@@ -12,8 +12,8 @@ import json, os
 
 from resources.naver_ocr_domain_key import NAVER_OCR_DOMAIN_KEY as ocr_keys
 
-
 RESULT_FILE = os.getcwd() + "/result/"
+
 
 def ocr_request(request: ocr_schemas.RequestOCR):
     selected_ocr = ocr_keys[0]
@@ -64,7 +64,13 @@ def print_result_on_terminal(response):
 
 
 # User Id를 추가한 요청
-def ocr_request_by_user(request: ocr_schemas.RequestOCRByUser):
+def ocr_request_by_user(request: ocr_schemas.RequestOCRByUser, db: Session):
+    # Check User Exist
+    user = db.query(user_models.User).filter(user_models.User.id == request.user_id).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f'User with id {request.user_id} not found')
+
     selected_ocr = ocr_keys[0]
     for ocr_key in ocr_keys:
         if ocr_key['category'] == request.ocr_type:
@@ -95,30 +101,68 @@ def ocr_request_by_user(request: ocr_schemas.RequestOCRByUser):
     with open(RESULT_FILE + file_name, "w") as json_file:
         json.dump(json.loads(response.text), json_file)
 
+    new_ocr_result = ocr_models.OcrResult(user_id=user.id, result_file_name=file_name)
+    db.add(new_ocr_result)
+    db.commit()
     return json.loads(response.text)
 
 
 # 결과 받기
-def get_ocr_result_bu_OCR_id(ocr_id : int):
-    pass
+def get_ocr_result_by_OCR_ID(ocr_id: int, db: Session):
+    ocr_result = db.query(ocr_models.OcrResult).filter(ocr_models.OcrResult.id == ocr_id).first()
+    if not ocr_result:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f'OCR Result with id {ocr_id} not found')
+
+    with open(RESULT_FILE + ocr_result.result_file_name, "r") as json_file:
+        result = json.load(json_file)
+
+    return result
 
 
-def get_ocr_result_by_user(request: ocr_schemas.RequestOCR):
-    """
-    OCR 분석 결과 받기
-    """
-    pass
+def get_ocr_result_by_user(user_id: int, db: Session):
+    result = []
+
+    # Check User Exist
+    user = db.query(user_models.User).filter(user_models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f'User with id {user_id} not found')
+
+    ocr_results = db.query(ocr_models.OcrResult).filter(ocr_models.OcrResult.user_id == user_id)
+    if not ocr_results.first():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f'OCR Result not found')
+
+    for ocr_result in ocr_results.all():
+        with open(RESULT_FILE + ocr_result.result_file_name, "r") as json_file:
+            result_append = json.load(json_file)
+            result_append['id'] = ocr_result.id
+            result.append(result_append)
+    return result
 
 
-def get_ocr_result_all(request: ocr_schemas.RequestOCR):
-    """
-    OCR 분석 결과 받기
-    """
-    pass
+def get_ocr_result_all(db: Session):
+    result = []
+    ocr_results = db.query(ocr_models.OcrResult).filter()
+    if not ocr_results.first():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f'OCR Result not found')
+    for ocr_result in ocr_results.all():
+        with open(RESULT_FILE + ocr_result.result_file_name, "r") as json_file:
+            result_append = json.load(json_file)
+            result_append['id'] = ocr_result.id
+            result.append(result_append)
+    return result
 
 
-def delete_ocr_result(request: ocr_schemas.RequestOCR):
-    """
-    OCR 분석 결과 받기
-    """
-    pass
+def delete_ocr_result(ocr_id: int, db: Session):
+    ocr_result = db.query(ocr_models.OcrResult).filter(ocr_models.OcrResult.id == ocr_id)
+    if not ocr_result.first():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f'OCR Result not found')
+    file_name = ocr_result.first().result_file_name
+    ocr_result.delete()
+    db.commit()
+    os.remove(RESULT_FILE + file_name)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

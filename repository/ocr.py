@@ -98,7 +98,7 @@ def ocr_request_by_user(request: ocr_schemas.RequestOCRByUser, db: Session):
 
     # save result by user
     file_name = f"""{request.user_id}-{json.loads(response.text)['timestamp']}.json"""
-    with open(RESULT_FILE + file_name, "w") as json_file:
+    with open(RESULT_FILE + file_name, "w+") as json_file:
         json.dump(json.loads(response.text), json_file)
 
     new_ocr_result = ocr_models.OcrResult(user_id=user.id, result_file_name=file_name)

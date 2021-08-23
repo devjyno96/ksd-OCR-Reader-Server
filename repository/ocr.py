@@ -104,7 +104,10 @@ def ocr_request_by_user(request: ocr_schemas.RequestOCRByUser, db: Session):
     new_ocr_result = ocr_models.OcrResult(user_id=user.id, result_file_name=file_name)
     db.add(new_ocr_result)
     db.commit()
-    return json.loads(response.text)
+
+    result = json.loads(response.text)
+    result['id'] = new_ocr_result.id
+    return result
 
 
 # 결과 받기

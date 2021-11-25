@@ -4,7 +4,7 @@ import json
 
 from fastapi import status
 
-from test import user
+from KsdNaverOCRServer.tests import user
 
 
 class Order_1_OCR_Request_Test(unittest.TestCase):

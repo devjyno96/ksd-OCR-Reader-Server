@@ -1,7 +1,7 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 
-from . import token_ocr
+from KsdNaverOCRServer import token_ocr
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/user/login")
 

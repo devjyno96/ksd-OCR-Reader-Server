@@ -6,11 +6,11 @@ from fastapi_jwt_auth import AuthJWT
 from fastapi_jwt_auth.exceptions import JWTDecodeError
 from sqlalchemy.orm import Session
 
-from models import user as models
+from KsdNaverOCRServer.models import user as models
 
-from schemas import user as schemas
+from KsdNaverOCRServer.schemas import user as schemas
 
-from hashing import Hash
+from KsdNaverOCRServer.hashing import Hash
 
 
 def create(request: schemas.User, db: Session):

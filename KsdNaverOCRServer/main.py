@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from models import manage
-from routers import ocr, user
+from KsdNaverOCRServer.models import manage
+from KsdNaverOCRServer.routers import ocr, user
 
 app = FastAPI()
 

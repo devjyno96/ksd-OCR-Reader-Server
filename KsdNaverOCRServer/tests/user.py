@@ -4,15 +4,15 @@ import json
 
 from fastapi import status
 
-from models import user as user_models
-from models import manage
-import database
+from KsdNaverOCRServer.models import user as user_models
+from KsdNaverOCRServer.models import manage
+import KsdNaverOCRServer.database
 
 from fastapi import status
 
 # Test code에서 사용하는 유저 리스트 받아오는 함수
 def get_user_list():
-    db = database.SessionLocal()
+    db = KsdNaverOCRServer.database.SessionLocal()
     manage.create_all()  # 초기화 매핑
     user_list = db.query(user_models.User).all()
     return user_list
@@ -27,8 +27,8 @@ class Order_1_User_Test(unittest.TestCase):
         for i in range(1, 5):
             create_user_data = {
                 "username": f"test_{i}",
-                "password": "test",
-                "first_name": "test",
+                "password": "tests",
+                "first_name": "tests",
                 "last_name": f"_{i}",
                 "is_admin": False
             }

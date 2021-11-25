@@ -1,5 +1,5 @@
 /.idea/.gitignore
 /venv
 /.idea
-/result/*
+/KsdNaverOCRServer/result/*
 /ocr-server.db

@@ -37,7 +37,7 @@ NAVER_OCR_DOMAIN_KEY = [
     },
     {
         'domain_description': '6. 기질 및 성격검사',
-        'domain_name': 'cost-temperament and personality test',
+        'domain_name': 'cost-temperament and personality tests',
         'secret_key': 'ZVdkTXJtRmZIZkxHeUh4U1NXTEtIQ2ZUVVhGWnZubmw=',
         'APIGW_Invoke_url': 'https://baccc1d665f84eb998d253a315feda9a.apigw.ntruss.com/custom/v1/9269/4c69a6741019233071cc7159cd0f32825f94c1259386e24aab5825c82ae253c9/infer',
         'category': 'T_C',

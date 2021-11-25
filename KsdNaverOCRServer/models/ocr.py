@@ -1,8 +1,8 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Enum, UniqueConstraint, Boolean
 from sqlalchemy.orm import relationship
 
-from .models_function import get_now_time
-from database import Base
+from KsdNaverOCRServer.models.models_function import get_now_time
+from KsdNaverOCRServer.database import Base
 
 
 class OcrResult(Base):

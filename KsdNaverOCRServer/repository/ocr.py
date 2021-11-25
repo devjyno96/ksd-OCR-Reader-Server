@@ -2,15 +2,15 @@ import sqlalchemy
 from fastapi import HTTPException, status, Response
 from sqlalchemy.orm import Session
 
-from models import ocr as ocr_models
-from models import user as user_models
-from schemas import ocr as ocr_schemas
+from KsdNaverOCRServer.models import ocr as ocr_models
+from KsdNaverOCRServer.models import user as user_models
+from KsdNaverOCRServer.schemas import ocr as ocr_schemas
 
 import requests
 import time
 import json, os
 
-from resources.naver_ocr_domain_key import NAVER_OCR_DOMAIN_KEY as ocr_keys
+from KsdNaverOCRServer.resources.naver_ocr_domain_key import NAVER_OCR_DOMAIN_KEY as ocr_keys
 
 RESULT_FILE = os.getcwd() + "/result/"
 

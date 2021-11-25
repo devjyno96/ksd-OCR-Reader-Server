@@ -7,19 +7,19 @@ from sqlalchemy.orm import Session
 
 from fastapi_jwt_auth import AuthJWT
 
-import database
+import KsdNaverOCRServer.database
 
-from repository import user
+from KsdNaverOCRServer.repository import user
 
-from schemas import user as schemas
+from KsdNaverOCRServer.schemas import user as schemas
 
-from routers.routers_function import get_summary_location
+from KsdNaverOCRServer.routers.routers_function import get_summary_location
 
 router = APIRouter(
     prefix='/user',
     tags=['User']
 )
-get_db = database.get_db
+get_db = KsdNaverOCRServer.database.get_db
 
 
 @router.post('/', status_code=status.HTTP_201_CREATED, response_model=schemas.ShowUser, responses={
@@ -69,7 +69,7 @@ def check_id(username: str, db: Session = Depends(get_db)):
         "description": "Error: Not Found",
     },
 }, summary='login' + " | " + get_summary_location())
-def login(request: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(database.get_db)):
+def login(request: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     """
     ### 설명
     - login 확인 후 token 반환
@@ -88,7 +88,7 @@ def login(request: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(
         "description": "Error: Not Found",
     },
 }, summary='change_pw' + " | " + get_summary_location())
-def change_pw(request: schemas.ChangePassword, db: Session = Depends(database.get_db)):
+def change_pw(request: schemas.ChangePassword, db: Session = Depends(get_db)):
     """
     ### 설명
     - password 변경
@@ -103,13 +103,12 @@ def change_pw(request: schemas.ChangePassword, db: Session = Depends(database.ge
     return user.change_password(request, db)
 
 
-
 @router.delete('/{user_id}', status_code=status.HTTP_204_NO_CONTENT, responses={
     404: {
         "description": "Error: Not Found",
     },
 }, summary='delete' + " | " + get_summary_location())
-def delete(user_id: int, db: Session = Depends(database.get_db)):
+def delete(user_id: int, db: Session = Depends(get_db)):
     """
     ### 설명
     - User 삭제
@@ -125,7 +124,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="user/login")
 
 
 @router.post('/refresh', summary='refresh' + " | " + get_summary_location())
-def refresh(Authorize: AuthJWT = Depends(), db: Session = Depends(database.get_db)):
+def refresh(Authorize: AuthJWT = Depends(), db: Session = Depends(get_db)):
     """
     ### 설명
     - refresh token 전송 시, 검증 후 access token 생성해줌
@@ -142,7 +141,7 @@ def refresh(Authorize: AuthJWT = Depends(), db: Session = Depends(database.get_d
         "description": "Error: Not Found",
     },
 }, summary='show_profile' + " | " + get_summary_location())
-def show_profile(user_id: int, db: Session = Depends(database.get_db)):
+def show_profile(user_id: int, db: Session = Depends(get_db)):
     """
     ### 설명
     - User profile 조회
@@ -157,7 +156,7 @@ def show_profile(user_id: int, db: Session = Depends(database.get_db)):
         "description": "Error: Not Found",
     },
 }, summary='create_profile' + " | " + get_summary_location())
-def create_profile(request: schemas.CreateProfile, db: Session = Depends(database.get_db)):
+def create_profile(request: schemas.CreateProfile, db: Session = Depends(get_db)):
     """
     ### 설명
     - User Profile 생성
@@ -178,7 +177,7 @@ def create_profile(request: schemas.CreateProfile, db: Session = Depends(databas
         "description": "Error: Not Found",
     },
 }, summary='update_profile' + " | " + get_summary_location())
-def update_profile(user_id: int, requests: schemas.UpdateProfile, db: Session = Depends(database.get_db)):
+def update_profile(user_id: int, requests: schemas.UpdateProfile, db: Session = Depends(get_db)):
     """
     ### 설명
     - User Profile 수정
@@ -193,7 +192,7 @@ def update_profile(user_id: int, requests: schemas.UpdateProfile, db: Session = 
         "description": "Error: Not Found",
     },
 }, summary='delete_profile' + " | " + get_summary_location())
-def delete_profile(user_id: int, db: Session = Depends(database.get_db)):
+def delete_profile(user_id: int, db: Session = Depends(get_db)):
     """
     ### 설명
     - User Profile 삭제

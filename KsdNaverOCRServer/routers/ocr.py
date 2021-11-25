@@ -5,18 +5,18 @@ from fastapi import APIRouter, Depends, status, File, UploadFile, Form
 
 from sqlalchemy.orm import Session
 
-from repository import ocr as ocr_repository
+from KsdNaverOCRServer.repository import ocr as ocr_repository
 
-from schemas import ocr as ocr_schemas
+from KsdNaverOCRServer.schemas import ocr as ocr_schemas
 
-import database
+import KsdNaverOCRServer.database
 
 router = APIRouter(
     prefix='/ocr',
     tags=['Ocr']
 )
 
-get_db = database.get_db
+get_db = KsdNaverOCRServer.database.get_db
 
 
 @router.post('/', status_code=status.HTTP_201_CREATED)

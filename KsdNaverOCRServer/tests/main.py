@@ -25,8 +25,10 @@ def run_all_test():
 
     print('============Unit Test Start============')
     testSuite = unittest.TestSuite()
-    module_strings = ['user'  # , 'ocr'
-                      ]
+    module_strings = [
+        # 'user',
+        'ocr',
+    ]
     [__import__(model_str) for model_str in module_strings]
     suites = [unittest.TestLoader().loadTestsFromName(model_str) for model_str in module_strings]
     [testSuite.addTest(suite) for suite in suites]

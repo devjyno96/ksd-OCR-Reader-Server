@@ -6,13 +6,15 @@ from KsdNaverOCRServer.models import ocr as ocr_models
 from KsdNaverOCRServer.models import user as user_models
 from KsdNaverOCRServer.schemas import ocr as ocr_schemas
 
+from KsdNaverOCRServer.config import ROOT_DIR
+
 import requests
 import time
 import json, os
 
-from KsdNaverOCRServer.resources.naver_ocr_domain_key import NAVER_OCR_DOMAIN_KEY as ocr_keys
+from KsdNaverOCRServer.config import NAVER_OCR_DOMAIN_KEY_LIST as ocr_keys
 
-RESULT_FILE = os.getcwd() + "/result/"
+RESULT_FILE = ROOT_DIR + "/KsdNaverOCRServer/result/"
 
 
 def ocr_request(request: ocr_schemas.RequestOCR):
@@ -66,10 +68,10 @@ def print_result_on_terminal(response):
 # User Id를 추가한 요청
 def ocr_request_by_user(request: ocr_schemas.RequestOCRByUser, db: Session):
     # Check User Exist
-    user = db.query(user_models.User).filter(user_models.User.id == request.user_id).first()
-    if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f'User with id {request.user_id} not found')
+    # user = db.query(user_models.User).filter(user_models.User.id == request.user_id).first()
+    # if not user:
+    #     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+    #                         detail=f'User with id {request.user_id} not found')
 
     selected_ocr = ocr_keys[0]
     for ocr_key in ocr_keys:
@@ -97,11 +99,12 @@ def ocr_request_by_user(request: ocr_schemas.RequestOCRByUser, db: Session):
     response = requests.post(url=selected_ocr['APIGW_Invoke_url'], headers=headers, data=payload)
 
     # save result by user
+    # TODO 추후 S3로 결과 업로드 예정
     file_name = f"""{request.user_id}-{json.loads(response.text)['timestamp']}.json"""
     with open(RESULT_FILE + file_name, "w+") as json_file:
         json.dump(json.loads(response.text), json_file)
 
-    new_ocr_result = ocr_models.OcrResult(user_id=user.id, result_file_name=file_name)
+    new_ocr_result = ocr_models.OcrResult(user_id=request.user_id, result_file_name=file_name)
     db.add(new_ocr_result)
     db.commit()
 
@@ -124,13 +127,32 @@ def get_ocr_result_by_OCR_ID(ocr_id: int, db: Session):
 
 
 def get_ocr_result_by_user(user_id: int, db: Session):
-    result = []
-
     # Check User Exist
-    user = db.query(user_models.User).filter(user_models.User.id == user_id).first()
-    if not user:
+    # user = db.query(user_models.User).filter(user_models.User.id == user_id).first()
+    # if not user:
+    #     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+    #                         detail=f'User with id {user_id} not found')
+
+    ocr_results = db.query(ocr_models.OcrResult).filter(ocr_models.OcrResult.user_id == user_id)
+    if not ocr_results.first():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f'User with id {user_id} not found')
+                            detail=f'OCR Result not found')
+    result = []
+    for ocr_result in ocr_results.all():
+        with open(RESULT_FILE + ocr_result.result_file_name, "r") as json_file:
+            result_append = json.load(json_file)
+            result_append['id'] = ocr_result.id
+            result_append['user_id'] = ocr_result.user_id
+            result.append(result_append)
+    return result
+
+
+def delete_ocr_result_by_user(user_id: int, db: Session):
+    # Check User Exist
+    # user = db.query(user_models.User).filter(user_models.User.id == user_id).first()
+    # if not user:
+    #     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+    #                         detail=f'User with id {user_id} not found')
 
     ocr_results = db.query(ocr_models.OcrResult).filter(ocr_models.OcrResult.user_id == user_id)
     if not ocr_results.first():
@@ -138,11 +160,11 @@ def get_ocr_result_by_user(user_id: int, db: Session):
                             detail=f'OCR Result not found')
 
     for ocr_result in ocr_results.all():
-        with open(RESULT_FILE + ocr_result.result_file_name, "r") as json_file:
-            result_append = json.load(json_file)
-            result_append['id'] = ocr_result.id
-            result.append(result_append)
-    return result
+        file_name = RESULT_FILE + ocr_result.result_file_name
+        db.delete(ocr_result)
+        db.commit()
+        os.remove(file_name)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 def get_ocr_result_all(db: Session):
@@ -155,6 +177,7 @@ def get_ocr_result_all(db: Session):
         with open(RESULT_FILE + ocr_result.result_file_name, "r") as json_file:
             result_append = json.load(json_file)
             result_append['id'] = ocr_result.id
+            result_append['user_id'] = ocr_result.user_id
             result.append(result_append)
     return result
 

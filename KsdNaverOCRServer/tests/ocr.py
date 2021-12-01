@@ -52,7 +52,13 @@ class Order_1_OCR_Request_Test(BaseTest):
 
     def test_7_Delete_OCR_Result(self):
         ocr_results = json.loads(self.test_client.get(self.host + 'ocr/all').text)
-        response = self.test_client.delete(self.host + 'ocr/result', params={"ocr_id": ocr_results[0]['id']})
+        response = self.test_client.delete(self.host + 'ocr/result', params={"ocr_id": ocr_results[0]['user_id']})
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, msg="Ocr Request Error")
+
+    def test_8_Delete_OCR_Result_by_user(self):
+        self.test_3_Request_OCR_By_User()
+        ocr_results = json.loads(self.test_client.get(self.host + 'ocr/all').text)
+        response = self.test_client.delete(self.host + 'ocr/result/user', params={"user_id": ocr_results[0]['user_id']})
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, msg="Ocr Request Error")
 
 

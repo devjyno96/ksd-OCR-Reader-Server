@@ -54,7 +54,7 @@ def get_ocr_result_by_user(user_id: int, db: Session = Depends(get_db)):
     return ocr_repository.get_ocr_result_by_user(user_id, db)
 
 
-@router.delete('/result/user', status_code=status.HTTP_200_OK)
+@router.delete('/result/user', status_code=status.HTTP_204_NO_CONTENT)
 def get_ocr_result_by_user(user_id: int, db: Session = Depends(get_db)):
     """
     OCR 분석 결과 중 해당 user id의 모든 결과 삭제하기

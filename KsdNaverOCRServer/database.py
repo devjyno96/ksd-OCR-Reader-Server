@@ -3,8 +3,6 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-import os
-from pathlib import Path
 from KsdNaverOCRServer import config
 
 
@@ -25,6 +23,7 @@ def create_mysql_db_engine():
     MYSQL_DATABASE_URL = f"mysql+pymysql://{db_username}:{db_password}@{db_host}/{db_dbname}?charset={db_charset}"
 
     return create_engine(MYSQL_DATABASE_URL, pool_pre_ping=True)
+
 
 print(config.ROOT_DIR)
 DATABASE_TYPE = 'MYSQL'

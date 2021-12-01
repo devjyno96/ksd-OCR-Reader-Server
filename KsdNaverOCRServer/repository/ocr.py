@@ -148,8 +148,6 @@ def get_ocr_result_by_user(user_id: int, db: Session):
 
 
 def delete_ocr_result_by_user(user_id: int, db: Session):
-    result = []
-
     # Check User Exist
     # user = db.query(user_models.User).filter(user_models.User.id == user_id).first()
     # if not user:
@@ -166,7 +164,7 @@ def delete_ocr_result_by_user(user_id: int, db: Session):
         db.delete(ocr_result)
         db.commit()
         os.remove(file_name)
-    return result
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 def get_ocr_result_all(db: Session):

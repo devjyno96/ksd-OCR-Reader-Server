@@ -22,7 +22,7 @@ class User(Base):
     admin_user = relationship("AdminUser", back_populates="user", passive_deletes=True)
 
     # User : OCR_Result = 1 to n
-    ocr_results = relationship("OcrResult", back_populates="ocr_results")
+    # ocr_results = relationship("OcrResult", back_populates="ocr_results")
 
 
 class Profile(Base):

@@ -17,4 +17,4 @@ app.add_middleware(
 manage.create_all()
 
 app.include_router(ocr.router)
-app.include_router(user.router)
+# app.include_router(user.router)

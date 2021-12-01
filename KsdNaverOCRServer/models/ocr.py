@@ -11,6 +11,8 @@ class OcrResult(Base):
     result_file_name = Column(String)
     created_time = Column(DateTime, default=get_now_time())
 
+    user_id = Column(Integer, nullable=False)
+
     # User : Ocr_result = 1 : N
-    user_id = Column(Integer, ForeignKey('users.id'))
-    ocr_results = relationship("User", back_populates="ocr_results", foreign_keys=[user_id])
+    # user_id = Column(Integer, ForeignKey('users.id'))
+    # ocr_results = relationship("User", back_populates="ocr_results", foreign_keys=[user_id])

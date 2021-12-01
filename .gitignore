@@ -3,3 +3,5 @@
 /.idea
 /KsdNaverOCRServer/result/*
 /ocr-server.db
+/.env
+/ocr-domain.json

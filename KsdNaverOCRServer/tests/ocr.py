@@ -14,10 +14,7 @@ class Order_1_OCR_Request_Test(BaseTest):
             "s3_url": "http://s3.ap-northeast-2.amazonaws.com/ocr.image.ksd.hansung.ac.kr/1613142375245.jpg",
             "ocr_type": "D_IE",
         }
-        # response = self.test_client.post(self.host + 'ocr/', data=json.dumps(ocr_request_data))
-        # response = self.test_client.post(self.host + 'ocr/', data=ocr_request_data)
         response = self.test_client.post(self.host + 'ocr/', json=ocr_request_data)
-        print(json.loads(response.text))
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, msg="Ocr Request Error")
 
     def test_2_test_OCR(self):
@@ -26,7 +23,6 @@ class Order_1_OCR_Request_Test(BaseTest):
             "ocr_type": "D_IE",
         }
         response = self.test_client.post(self.host + 'ocr/', json=ocr_request_data)
-        print(json.loads(response.text))
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, msg="Ocr Request Error")
 
     def test_3_Request_OCR_By_User(self):
@@ -51,14 +47,14 @@ class Order_1_OCR_Request_Test(BaseTest):
 
     def test_6_Get_OCR_Result_By_User(self):
         ocr_results = json.loads(self.test_client.get(self.host + 'ocr/all').text)
-        response = self.test_client.get(self.host + 'ocr/result/user', params={"user_id": ocr_results[0]['id']})
+        response = self.test_client.get(self.host + 'ocr/result/user', params={"user_id": ocr_results[0]['user_id']})
         self.assertEqual(response.status_code, status.HTTP_200_OK, msg="Ocr Request Error")
 
     def test_7_Delete_OCR_Result(self):
         ocr_results = json.loads(self.test_client.get(self.host + 'ocr/all').text)
-        response = self.test_client.delete(self.host + 'ocr/result/', params={"ocr_id": ocr_results[0]['id']})
+        response = self.test_client.delete(self.host + 'ocr/result', params={"ocr_id": ocr_results[0]['id']})
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, msg="Ocr Request Error")
 
 
 if __name__ == "__main__":
-    unittest.main(warnings='ignore')
+    Order_1_OCR_Request_Test.main(warnings='ignore')

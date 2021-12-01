@@ -10,7 +10,7 @@ import requests
 import time
 import json, os
 
-from KsdNaverOCRServer.resources.naver_ocr_domain_key import NAVER_OCR_DOMAIN_KEY as ocr_keys
+from KsdNaverOCRServer.config import NAVER_OCR_DOMAIN_KEY_LIST as ocr_keys
 
 RESULT_FILE = os.getcwd() + "/result/"
 

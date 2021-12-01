@@ -127,6 +127,27 @@ def get_ocr_result_by_OCR_ID(ocr_id: int, db: Session):
 
 
 def get_ocr_result_by_user(user_id: int, db: Session):
+    # Check User Exist
+    # user = db.query(user_models.User).filter(user_models.User.id == user_id).first()
+    # if not user:
+    #     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+    #                         detail=f'User with id {user_id} not found')
+
+    ocr_results = db.query(ocr_models.OcrResult).filter(ocr_models.OcrResult.user_id == user_id)
+    if not ocr_results.first():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f'OCR Result not found')
+    result = []
+    for ocr_result in ocr_results.all():
+        with open(RESULT_FILE + ocr_result.result_file_name, "r") as json_file:
+            result_append = json.load(json_file)
+            result_append['id'] = ocr_result.id
+            result_append['user_id'] = ocr_result.user_id
+            result.append(result_append)
+    return result
+
+
+def delete_ocr_result_by_user(user_id: int, db: Session):
     result = []
 
     # Check User Exist
@@ -141,11 +162,10 @@ def get_ocr_result_by_user(user_id: int, db: Session):
                             detail=f'OCR Result not found')
 
     for ocr_result in ocr_results.all():
-        with open(RESULT_FILE + ocr_result.result_file_name, "r") as json_file:
-            result_append = json.load(json_file)
-            result_append['id'] = ocr_result.id
-            result_append['user_id'] = ocr_result.user_id
-            result.append(result_append)
+        file_name = RESULT_FILE + ocr_result.result_file_name
+        db.delete(ocr_result)
+        db.commit()
+        os.remove(file_name)
     return result
 
 

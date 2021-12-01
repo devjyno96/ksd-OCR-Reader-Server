@@ -2,10 +2,11 @@ import json
 import sys
 import os
 from dotenv import load_dotenv
+from pathlib import Path
 
 load_dotenv()
 
-ROOT_DIR = os.path.join(os.path.dirname(__file__), os.pardir)
+ROOT_DIR = str(Path(os.path.realpath(__file__)).parent.parent.absolute())
 sys.path.insert(0, ROOT_DIR)
 
 SECRET_KEY = os.getenv("SECRET_KEY")

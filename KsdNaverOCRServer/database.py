@@ -25,7 +25,6 @@ def create_mysql_db_engine():
     return create_engine(MYSQL_DATABASE_URL, pool_pre_ping=True)
 
 
-print(config.ROOT_DIR)
 DATABASE_TYPE = 'MYSQL'
 DATABASE_TYPE = 'SQLITE'
 

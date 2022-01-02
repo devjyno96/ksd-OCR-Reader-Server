@@ -30,7 +30,7 @@ def ocr_request(request: ocr_schemas.RequestOCR):
 
 
 @router.post('/v2', status_code=status.HTTP_201_CREATED)
-def ocr_request_v2(category: CategoryEnum, image_file: UploadFile = File(...), db: Session = Depends(get_db)):
+def ocr_request_v2(category: CategoryEnum = Form(...), image_file: UploadFile = File(...), db: Session = Depends(get_db)):
     '''
     OCR 분석 요청
     해당 category에 맞게 string으로 넘겨주시면 됩니다.

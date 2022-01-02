@@ -3,6 +3,7 @@ import json
 from fastapi import status
 from KsdNaverOCRServer.tests.base import BaseTest
 from KsdNaverOCRServer.enums import CategoryEnum
+from KsdNaverOCRServer.config import ROOT_DIR
 
 class Order_1_OCR_Request_Test(BaseTest):
 
@@ -17,16 +18,19 @@ class Order_1_OCR_Request_Test(BaseTest):
         response = self.test_client.post(self.host + 'ocr/', json=ocr_request_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, msg="Ocr Request Error")
 
-
     def test_1_1_Call_OCR_v2(self):
-        request_category = CategoryEnum.Total
-        request_image_file =
-        ocr_request_data = {
-            "s3_url": "http://s3.ap-northeast-2.amazonaws.com/ocr.image.ksd.hansung.ac.kr/1613142375245.jpg",
-            "ocr_type": "D_IE",
-        }
-        response = self.test_client.post(self.host + 'ocr/', json=ocr_request_data)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED, msg="Ocr Request Error")
+        filepath = ROOT_DIR + '/KsdNaverOCRServer/tests/resource/덴버발달.JPG'
+        request_category = CategoryEnum.Development_Intelligence
+        with open(filepath, 'rb') as fh:
+            create_file = {
+                'category': (None, request_category.value),
+                'image_file': fh
+            }
+            result = self.test_client.post('/ocr/v2',
+                                           files=create_file,
+                                           ).json()
+        print()
+        # self.assertEqual(response.status_code, status.HTTP_201_CREATED, msg="Ocr Request Error")
 
     def test_2_test_OCR(self):
         ocr_request_data = {

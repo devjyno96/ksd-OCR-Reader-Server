@@ -34,6 +34,7 @@ def ocr_request_v2(category: CategoryEnum = Form(...), image_file: UploadFile = 
     '''
     OCR 분석 요청
     해당 category에 맞게 string으로 넘겨주시면 됩니다.
+
     TOTAL의 경우 아래 카테고리 중 해당하는 카테고리를 찾아서 반환해 줍니다.
 
         [
@@ -74,12 +75,17 @@ def ocr_request_v2(category: CategoryEnum = Form(...), image_file: UploadFile = 
           },
           {
             "domain_description": "8. 전체 검사",
-            "domain_name": "Attention & Neurocognition & Learning tests",
+            "domain_name": "Total",
             "category": "TOTAL"
           }
         ]
     '''
-    return ocr_repository.ocr_request_v2(category, image_file, db)
+
+    if category == CategoryEnum.Total:
+        return ocr_repository.ocr_request_v2_total(image_file, db)
+    else:
+        return ocr_repository.ocr_request_v2(category, image_file, db)
+
 
 
 # User Id를 추가한 요청

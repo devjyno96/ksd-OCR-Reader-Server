@@ -1,19 +1,17 @@
-import sqlalchemy
+import base64
+import json
+import os
+import time
+
+import requests
 from fastapi import HTTPException, status, Response, UploadFile
 from sqlalchemy.orm import Session
 
+from KsdNaverOCRServer.config import NAVER_OCR_DOMAIN_KEY_LIST as ocr_keys
+from KsdNaverOCRServer.config import ROOT_DIR
 from KsdNaverOCRServer.enums import CategoryEnum
 from KsdNaverOCRServer.models import ocr as ocr_models
-from KsdNaverOCRServer.models import user as user_models
 from KsdNaverOCRServer.schemas import ocr as ocr_schemas
-
-from KsdNaverOCRServer.config import ROOT_DIR
-
-import requests
-import time
-import json, os
-
-from KsdNaverOCRServer.config import NAVER_OCR_DOMAIN_KEY_LIST as ocr_keys
 
 RESULT_FILE = ROOT_DIR + "/KsdNaverOCRServer/result/"
 
@@ -51,15 +49,13 @@ def ocr_request_v2(category: CategoryEnum, image_file: UploadFile, db: Session):
     for ocr_key in ocr_keys:
         if ocr_key['category'] == category.value:
             selected_ocr = ocr_key
-    print('')
-    import base64
+
     request_json = {
         'images': [
             {
                 'format': image_file.filename.split('.')[-1],
                 'name': 'image',
-                'data': base64.b64encode(image_file.file._file.read()).decode('utf8'),
-                # 'url': request.s3_url
+                'data': base64.b64encode(image_file.file.read()).decode('utf8'),
             }
         ],
         'requestId': 'ocr-request',
@@ -73,11 +69,49 @@ def ocr_request_v2(category: CategoryEnum, image_file: UploadFile, db: Session):
         'Content-Type': 'application/json'
     }
 
-    response = requests.post(url=selected_ocr['APIGW_Invoke_url'], headers=headers, data=payload)
-    # print_result_on_terminal(response)
-    print()
+    response = requests.post(url=selected_ocr['APIGW_Invoke_url'], headers=headers, data=payload).json()
+    result = {
+        "domain_name": selected_ocr['domain_name'],
+        "category": selected_ocr['category'],
+        "ocr_result": response
+    }
+    return result
 
-    return json.loads(response.text)
+
+def ocr_request_v2_total(image_file: UploadFile, db: Session):
+    ocr_result_data = base64.b64encode(image_file.file.read()).decode('utf8')
+    for ocr_key in ocr_keys:
+        request_json = {
+            'images': [
+                {
+                    'format': image_file.filename.split('.')[-1],
+                    'name': 'image',
+                    'data': ocr_result_data,
+                }
+            ],
+            'requestId': 'ocr-request',
+            'version': 'V2',
+            'timestamp': int(round(time.time() * 1000))
+        }
+
+        payload = json.dumps(request_json).encode('UTF-8')
+        headers = {
+            'X-OCR-SECRET': ocr_key['secret_key'],
+            'Content-Type': 'application/json'
+        }
+
+        response = requests.post(url=ocr_key['APIGW_Invoke_url'], headers=headers, data=payload).json()
+        if response['images'][0]['inferResult'] == 'SUCCESS':
+            return {
+                "domain_name": ocr_key['domain_name'],
+                "category": ocr_key['category'],
+                "ocr_result": response
+            }
+    return Response(content={
+        "domain_name": 'match_fail',
+        "category": 'match_fail',
+        "ocr_result": response
+    }, status_code=status.HTTP_404_NOT_FOUND)
 
 
 # Terminal Test용

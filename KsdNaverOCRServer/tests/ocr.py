@@ -5,6 +5,7 @@ from KsdNaverOCRServer.tests.base import BaseTest
 from KsdNaverOCRServer.enums import CategoryEnum
 from KsdNaverOCRServer.config import ROOT_DIR
 
+
 class Order_1_OCR_Request_Test(BaseTest):
 
     def setUp(self) -> None:
@@ -18,19 +19,37 @@ class Order_1_OCR_Request_Test(BaseTest):
         response = self.test_client.post(self.host + 'ocr/', json=ocr_request_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, msg="Ocr Request Error")
 
-    def test_1_1_Call_OCR_v2(self):
+    def test_1_1_Call_OCR_v2_select(self):
         filepath = ROOT_DIR + '/KsdNaverOCRServer/tests/resource/덴버발달.JPG'
-        request_category = CategoryEnum.Development_Intelligence
-        with open(filepath, 'rb') as fh:
+
+        # Template Select Test
+        with open(filepath, 'rb') as fh_select:
+            request_category = CategoryEnum.Development_Intelligence
             create_file = {
                 'category': (None, request_category.value),
-                'image_file': fh
+                'image_file': fh_select
             }
-            result = self.test_client.post('/ocr/v2',
-                                           files=create_file,
-                                           ).json()
-        print()
-        # self.assertEqual(response.status_code, status.HTTP_201_CREATED, msg="Ocr Request Error")
+            result_select = self.test_client.post('/ocr/v2',
+                                                  files=create_file,
+                                                  ).json()
+        self.assertEqual(result_select['ocr_result']['images'][0]['matchedTemplate']['name'], '덴버발달',
+                         msg='test_1_1_Call_OCR_v2a Select Template')
+
+    def test_1_1_Call_OCR_v2_total(self):
+        filepath = ROOT_DIR + '/KsdNaverOCRServer/tests/resource/덴버발달.JPG'
+
+        # Template Total Test
+        with open(filepath, 'rb') as fh_total:
+            request_category = CategoryEnum.Total
+            create_file = {
+                'category': (None, request_category.value),
+                'image_file': fh_total
+            }
+            result_total = self.test_client.post('/ocr/v2',
+                                                 files=create_file,
+                                                 ).json()
+            self.assertEqual(result_total['ocr_result']['images'][0]['matchedTemplate']['name'], '덴버발달',
+                             msg='test_1_1_Call_OCR_v2 Total')
 
     def test_2_test_OCR(self):
         ocr_request_data = {

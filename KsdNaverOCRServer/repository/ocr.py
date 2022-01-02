@@ -1,7 +1,8 @@
 import sqlalchemy
-from fastapi import HTTPException, status, Response
+from fastapi import HTTPException, status, Response, UploadFile
 from sqlalchemy.orm import Session
 
+from KsdNaverOCRServer.enums import CategoryEnum
 from KsdNaverOCRServer.models import ocr as ocr_models
 from KsdNaverOCRServer.models import user as user_models
 from KsdNaverOCRServer.schemas import ocr as ocr_schemas
@@ -44,6 +45,37 @@ def ocr_request(request: ocr_schemas.RequestOCR):
     response = requests.post(url=selected_ocr['APIGW_Invoke_url'], headers=headers, data=payload)
     # print_result_on_terminal(response)
     return json.loads(response.text)
+
+
+def ocr_request_v2(category: CategoryEnum, image_file: UploadFile, db: Session):
+    print()
+    pass
+    # selected_ocr = ocr_keys[0]
+    # for ocr_key in ocr_keys:
+    #     if ocr_key['category'] == ocr_type:
+    #         selected_ocr = ocr_key
+    # request_json = {
+    #     'images': [
+    #         {
+    #             'format': request.s3_url.split('.')[-1],
+    #             'name': 'image',
+    #             'url': request.s3_url
+    #         }
+    #     ],
+    #     'requestId': 'ocr-request',
+    #     'version': 'V2',
+    #     'timestamp': int(round(time.time() * 1000))
+    # }
+    #
+    # payload = json.dumps(request_json).encode('UTF-8')
+    # headers = {
+    #     'X-OCR-SECRET': selected_ocr['secret_key'],
+    #     'Content-Type': 'application/json'
+    # }
+    #
+    # response = requests.post(url=selected_ocr['APIGW_Invoke_url'], headers=headers, data=payload)
+    # # print_result_on_terminal(response)
+    # return json.loads(response.text)
 
 
 # Terminal Test용

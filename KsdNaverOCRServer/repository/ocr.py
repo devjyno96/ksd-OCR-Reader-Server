@@ -101,17 +101,14 @@ def ocr_request_v2_total(image_file: UploadFile, db: Session):
         }
 
         response = requests.post(url=ocr_key['APIGW_Invoke_url'], headers=headers, data=payload).json()
-        if response['images'][0]['inferResult'] == 'SUCCESS':
-            return {
-                "domain_name": ocr_key['domain_name'],
-                "category": ocr_key['category'],
-                "ocr_result": response
-            }
-    return Response(content={
-        "domain_name": 'match_fail',
-        "category": 'match_fail',
-        "ocr_result": response
-    }, status_code=status.HTTP_404_NOT_FOUND)
+        if 'images' in response:
+            if response['images'][0]['inferResult'] == 'SUCCESS':
+                return {
+                    "domain_name": ocr_key['domain_name'],
+                    "category": ocr_key['category'],
+                    "ocr_result": response
+                }
+    return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=response)
 
 
 # Terminal Test용

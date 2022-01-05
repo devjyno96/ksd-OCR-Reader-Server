@@ -29,7 +29,7 @@ def ocr_request(request: ocr_schemas.RequestOCR):
     return ocr_repository.ocr_request(request)
 
 
-@router.post('/v2', status_code=status.HTTP_201_CREATED)
+@router.post('/v2', status_code=status.HTTP_201_CREATED, )
 def ocr_request_v2(category: CategoryEnum = Form(...), image_file: UploadFile = File(...), db: Session = Depends(get_db)):
     '''
     OCR 분석 요청

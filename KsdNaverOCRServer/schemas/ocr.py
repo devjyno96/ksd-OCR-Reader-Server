@@ -2,14 +2,15 @@ from typing import List, Optional
 
 from pydantic import BaseModel
 
+from KsdNaverOCRServer.enums import CategoryEnum
+
 
 class RequestOCR(BaseModel):
-    s3_url: str
-    ocr_type: str
+    image_url: str
+    category: CategoryEnum
 
-    # class Config():
-    #     orm_mode = True
 
 
 class RequestOCRByUser(RequestOCR):
     user_id: int
+

@@ -111,6 +111,71 @@ def ocr_request_v2_total(image_file: UploadFile, db: Session):
     return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=response)
 
 
+def ocr_request_v2_by_url_total(image_url: str):
+    for ocr_key in ocr_keys:
+        request_json = {
+            'images': [
+                {
+                    'format': image_url.split('.')[-1],
+                    'name': 'image',
+                    'url': image_url
+                }
+            ],
+            'requestId': 'ocr-request',
+            'version': 'V2',
+            'timestamp': int(round(time.time() * 1000))
+        }
+
+        payload = json.dumps(request_json).encode('UTF-8')
+        headers = {
+            'X-OCR-SECRET': ocr_key['secret_key'],
+            'Content-Type': 'application/json'
+        }
+
+        response = requests.post(url=ocr_key['APIGW_Invoke_url'], headers=headers, data=payload).json()
+        if 'images' in response:
+            if response['images'][0]['inferResult'] == 'SUCCESS':
+                return {
+                    "domain_name": ocr_key['domain_name'],
+                    "category": ocr_key['category'],
+                    "ocr_result": response
+                }
+    return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=response)
+
+
+def ocr_request_v2_by_url(image_url: str, category: CategoryEnum):
+    selected_ocr = ocr_keys[0]
+    for ocr_key in ocr_keys:
+        if ocr_key['category'] == category.value:
+            selected_ocr = ocr_key
+    request_json = {
+        'images': [
+            {
+                'format': image_url.split('.')[-1],
+                'name': 'image',
+                'url': image_url
+            }
+        ],
+        'requestId': 'ocr-request',
+        'version': 'V2',
+        'timestamp': int(round(time.time() * 1000))
+    }
+
+    payload = json.dumps(request_json).encode('UTF-8')
+    headers = {
+        'X-OCR-SECRET': selected_ocr['secret_key'],
+        'Content-Type': 'application/json'
+    }
+
+    response = requests.post(url=selected_ocr['APIGW_Invoke_url'], headers=headers, data=payload).json()
+
+    return {
+        "domain_name": ocr_key['domain_name'],
+        "category": ocr_key['category'],
+        "ocr_result": response
+    }
+
+
 # Terminal Test용
 def print_result_on_terminal(response):
     dict_data = json.loads(response.text)

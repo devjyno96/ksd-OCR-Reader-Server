@@ -111,12 +111,12 @@ def ocr_request_v2_total(image_file: UploadFile, db: Session):
     return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=response)
 
 
-def ocr_request_v2_by_url_total(image_url: str):
+def ocr_request_v2_by_url_total(image_url: str, file_name_extension: str):
     for ocr_key in ocr_keys:
         request_json = {
             'images': [
                 {
-                    'format': image_url.split('.')[-1],
+                    'format': file_name_extension,
                     'name': 'image',
                     'url': image_url
                 }
@@ -143,7 +143,7 @@ def ocr_request_v2_by_url_total(image_url: str):
     return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=response)
 
 
-def ocr_request_v2_by_url(image_url: str, category: CategoryEnum):
+def ocr_request_v2_by_url(image_url: str, file_name_extension: str, category: CategoryEnum):
     selected_ocr = ocr_keys[0]
     for ocr_key in ocr_keys:
         if ocr_key['category'] == category.value:
@@ -151,7 +151,7 @@ def ocr_request_v2_by_url(image_url: str, category: CategoryEnum):
     request_json = {
         'images': [
             {
-                'format': image_url.split('.')[-1],
+                'format': file_name_extension,
                 'name': 'image',
                 'url': image_url
             }

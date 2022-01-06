@@ -148,9 +148,12 @@ def ocr_request_v2_by_url(request: RequestOCR, db: Session = Depends(get_db)):
     '''
 
     if request.category == CategoryEnum.Total:
-        return ocr_repository.ocr_request_v2_by_url_total(request.image_url)
+        return ocr_repository.ocr_request_v2_by_url_total(request.image_url,
+                                                          file_name_extension=request.file_name_extension)
     else:
-        return ocr_repository.ocr_request_v2_by_url(request.image_url, request.category)
+        return ocr_repository.ocr_request_v2_by_url(image_url=request.image_url,
+                                                    file_name_extension=request.file_name_extension,
+                                                    category=request.category)
 
 
 # User Id를 추가한 요청

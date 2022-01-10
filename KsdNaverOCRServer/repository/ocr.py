@@ -16,6 +16,25 @@ from KsdNaverOCRServer.schemas import ocr as ocr_schemas
 RESULT_FILE = ROOT_DIR + "/KsdNaverOCRServer/result/"
 
 
+def ocr_result_filter(response):
+    if response['images'][0]['inferResult'] == 'SUCCESS':
+        result = []
+        for field in response['images'][0]['fields']:
+            result.append({
+                field['name']: field['inferText']
+            })
+        result_dict = {
+            'template_name': response['images'][0]['matchedTemplate']['name'],
+            'results': result
+        }
+        return result_dict
+    else:
+        return {
+            'template_name': None,
+            'results': None,
+        }
+
+
 def ocr_request(request: ocr_schemas.RequestOCR):
     selected_ocr = ocr_keys[0]
     for ocr_key in ocr_keys:
@@ -111,7 +130,7 @@ def ocr_request_v2_total(image_file: UploadFile, db: Session):
     return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=response)
 
 
-def ocr_request_v2_by_url_total(image_url: str, file_name_extension: str):
+def ocr_request_v2_by_url_total(user_id: int, image_url: str, file_name_extension: str, db: Session):
     for ocr_key in ocr_keys:
         request_json = {
             'images': [
@@ -135,15 +154,33 @@ def ocr_request_v2_by_url_total(image_url: str, file_name_extension: str):
         response = requests.post(url=ocr_key['APIGW_Invoke_url'], headers=headers, data=payload).json()
         if 'images' in response:
             if response['images'][0]['inferResult'] == 'SUCCESS':
+                filtered_result = ocr_result_filter(response)
+                file_name = f"""{user_id}-{response['timestamp']}.json"""
+                with open(RESULT_FILE + file_name, "w+") as json_file:
+                    json.dump(filtered_result, json_file)
+
+                new_ocr_result = ocr_models.OcrResult(user_id=user_id,
+                                                      result_file_name=file_name,
+                                                      category=ocr_key['category'])
+                db.add(new_ocr_result)
+                db.commit()
+                db.refresh(new_ocr_result)
                 return {
-                    "domain_name": ocr_key['domain_name'],
+                    'ocr_id': new_ocr_result.id,
+                    "user_id": user_id,
                     "category": ocr_key['category'],
-                    "ocr_result": response
+                    "domain_name": ocr_key['domain_name'],
+                    "ocr_result": filtered_result
                 }
-    return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=response)
+    return {
+        'user_id': None,
+        "domain_name": None,
+        "category": None,
+        "ocr_result": "Not Matched"
+    }
 
 
-def ocr_request_v2_by_url(image_url: str, file_name_extension: str, category: CategoryEnum):
+def ocr_request_v2_by_url(user_id: int, image_url: str, file_name_extension: str, category: CategoryEnum, db: Session):
     selected_ocr = ocr_keys[0]
     for ocr_key in ocr_keys:
         if ocr_key['category'] == category.value:
@@ -168,31 +205,32 @@ def ocr_request_v2_by_url(image_url: str, file_name_extension: str, category: Ca
     }
 
     response = requests.post(url=selected_ocr['APIGW_Invoke_url'], headers=headers, data=payload).json()
+    if 'images' in response:
+        if response['images'][0]['inferResult'] == 'SUCCESS':
+            filtered_result = ocr_result_filter(response)
+            file_name = f"""{user_id}-{response['timestamp']}.json"""
+            with open(RESULT_FILE + file_name, "w+") as json_file:
+                json.dump(filtered_result, json_file)
 
-    return {
-        "domain_name": ocr_key['domain_name'],
-        "category": ocr_key['category'],
-        "ocr_result": response
-    }
-
-
-# Terminal Test용
-def print_result_on_terminal(response):
-    dict_data = json.loads(response.text)
-    if dict_data['images'][0]['inferResult'] == 'SUCCESS':
-        result = []
-        for field in dict_data['images'][0]['fields']:
-            result.append({
-                # 'name': field['name'],
-                # 'inferText': field['inferText']
-                field['name']: field['inferText']
-            })
-    result_dict = {
-        'template_name': dict_data['images'][0]['matchedTemplate']['name'],
-        'results': result
-    }
-    from pprint import pprint
-    pprint(result_dict)
+            new_ocr_result = ocr_models.OcrResult(user_id=user_id,
+                                                  result_file_name=file_name,
+                                                  category=ocr_key['category'])
+            db.add(new_ocr_result)
+            db.commit()
+            db.refresh(new_ocr_result)
+            return {
+                'ocr_id': new_ocr_result.id,
+                "user_id": user_id,
+                "category": ocr_key['category'],
+                "domain_name": ocr_key['domain_name'],
+                "ocr_result": filtered_result
+            }
+    else:
+        return {
+            "domain_name": None,
+            "category": None,
+            "ocr_result": 'Not Matched'
+        }
 
 
 # User Id를 추가한 요청
@@ -253,7 +291,12 @@ def get_ocr_result_by_OCR_ID(ocr_id: int, db: Session):
     with open(RESULT_FILE + ocr_result.result_file_name, "r") as json_file:
         result = json.load(json_file)
 
-    return result
+    return {
+        'ocr_id': ocr_result.id,
+        'category': ocr_result.category,
+        'created_time': ocr_result.created_time,
+        'result': result
+    }
 
 
 def get_ocr_result_by_user(user_id: int, db: Session):
@@ -270,10 +313,14 @@ def get_ocr_result_by_user(user_id: int, db: Session):
     result = []
     for ocr_result in ocr_results.all():
         with open(RESULT_FILE + ocr_result.result_file_name, "r") as json_file:
-            result_append = json.load(json_file)
-            result_append['id'] = ocr_result.id
-            result_append['user_id'] = ocr_result.user_id
-            result.append(result_append)
+            result.append(
+                {
+                    'user_id': ocr_result.user_id,
+                    'ocr_id': ocr_result.id,
+                    'category': ocr_result.category,
+                    'created_time': ocr_result.created_time,
+                    'result': json.load(json_file)
+                })
     return result
 
 
@@ -305,10 +352,14 @@ def get_ocr_result_all(db: Session):
                             detail=f'OCR Result not found')
     for ocr_result in ocr_results.all():
         with open(RESULT_FILE + ocr_result.result_file_name, "r") as json_file:
-            result_append = json.load(json_file)
-            result_append['id'] = ocr_result.id
-            result_append['user_id'] = ocr_result.user_id
-            result.append(result_append)
+            result.append(
+                {
+                    'user_id': ocr_result.user_id,
+                    'ocr_id': ocr_result.id,
+                    'category': ocr_result.category,
+                    'created_time': ocr_result.created_time,
+                    'result': json.load(json_file)
+                })
     return result
 
 

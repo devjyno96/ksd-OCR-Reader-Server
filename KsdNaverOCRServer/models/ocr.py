@@ -9,6 +9,7 @@ class OcrResult(Base):
     __tablename__ = 'ocr_result'
     id = Column(Integer, primary_key=True, index=True)
     result_file_name = Column(String)
+    category = Column(String)
     created_time = Column(DateTime, default=get_now_time())
 
     user_id = Column(Integer, nullable=False)

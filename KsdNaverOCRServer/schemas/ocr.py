@@ -1,4 +1,5 @@
-from typing import List, Optional
+from datetime import datetime
+from typing import List, Optional, Any, Dict
 
 from pydantic import BaseModel
 
@@ -12,4 +13,13 @@ class RequestOCR(BaseModel):
 
 
 class RequestOCRByUser(RequestOCR):
-    user_id: int
+    user_id: str
+
+
+class ShowRequestOCR(BaseModel):
+    ocr_id: int
+    user_id: str
+    category: str
+    domain_name: str
+    created_time: datetime
+    ocr_result: Dict

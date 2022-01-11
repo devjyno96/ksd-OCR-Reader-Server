@@ -8,67 +8,20 @@ from fastapi import HTTPException, status, Response, UploadFile
 from sqlalchemy.orm import Session
 
 from KsdNaverOCRServer.config import NAVER_OCR_DOMAIN_KEY_LIST as ocr_keys
-from KsdNaverOCRServer.config import ROOT_DIR
+from KsdNaverOCRServer.config import ROOT_DIR, RESULT_FILE
 from KsdNaverOCRServer.enums import CategoryEnum
-from KsdNaverOCRServer.models import ocr as ocr_models
-from KsdNaverOCRServer.schemas import ocr as ocr_schemas
-
-RESULT_FILE = ROOT_DIR + "/KsdNaverOCRServer/result/"
+from KsdNaverOCRServer.models.ocr import OcrResult
+from KsdNaverOCRServer.schemas.ocr import ShowRequestOCR
 
 
-def ocr_result_filter(response):
-    if response['images'][0]['inferResult'] == 'SUCCESS':
-        result = []
-        for field in response['images'][0]['fields']:
-            result.append({
-                field['name']: field['inferText']
-            })
-        result_dict = {
-            'template_name': response['images'][0]['matchedTemplate']['name'],
-            'results': result
-        }
-        return result_dict
-    else:
-        return {
-            'template_name': None,
-            'results': None,
-        }
-
-
-def ocr_request(request: ocr_schemas.RequestOCR):
-    selected_ocr = ocr_keys[0]
+def get_ocr_key_by_category(category: str):
     for ocr_key in ocr_keys:
-        if ocr_key['category'] == request.ocr_type:
-            selected_ocr = ocr_key
-    request_json = {
-        'images': [
-            {
-                'format': request.s3_url.split('.')[-1],
-                'name': 'image',
-                'url': request.s3_url
-            }
-        ],
-        'requestId': 'ocr-request',
-        'version': 'V2',
-        'timestamp': int(round(time.time() * 1000))
-    }
-
-    payload = json.dumps(request_json).encode('UTF-8')
-    headers = {
-        'X-OCR-SECRET': selected_ocr['secret_key'],
-        'Content-Type': 'application/json'
-    }
-
-    response = requests.post(url=selected_ocr['APIGW_Invoke_url'], headers=headers, data=payload)
-    # print_result_on_terminal(response)
-    return json.loads(response.text)
+        if ocr_key['category'] == category:
+            return ocr_key
 
 
-def ocr_request_v2(category: CategoryEnum, image_file: UploadFile, db: Session):
-    for ocr_key in ocr_keys:
-        if ocr_key['category'] == category.value:
-            selected_ocr = ocr_key
-
+def ocr_request_by_image_file(image_file: UploadFile, category: CategoryEnum):
+    ocr_key = get_ocr_key_by_category(category.value)
     request_json = {
         'images': [
             {
@@ -84,107 +37,15 @@ def ocr_request_v2(category: CategoryEnum, image_file: UploadFile, db: Session):
 
     payload = json.dumps(request_json).encode('UTF-8')
     headers = {
-        'X-OCR-SECRET': selected_ocr['secret_key'],
+        'X-OCR-SECRET': ocr_key['secret_key'],
         'Content-Type': 'application/json'
     }
-
-    response = requests.post(url=selected_ocr['APIGW_Invoke_url'], headers=headers, data=payload).json()
-    result = {
-        "domain_name": selected_ocr['domain_name'],
-        "category": selected_ocr['category'],
-        "ocr_result": response
-    }
-    return result
+    response = requests.post(url=ocr_key['APIGW_Invoke_url'], headers=headers, data=payload).json()
+    return response
 
 
-def ocr_request_v2_total(image_file: UploadFile, db: Session):
-    ocr_result_data = base64.b64encode(image_file.file.read()).decode('utf8')
-    for ocr_key in ocr_keys:
-        request_json = {
-            'images': [
-                {
-                    'format': image_file.filename.split('.')[-1],
-                    'name': 'image',
-                    'data': ocr_result_data,
-                }
-            ],
-            'requestId': 'ocr-request',
-            'version': 'V2',
-            'timestamp': int(round(time.time() * 1000))
-        }
-
-        payload = json.dumps(request_json).encode('UTF-8')
-        headers = {
-            'X-OCR-SECRET': ocr_key['secret_key'],
-            'Content-Type': 'application/json'
-        }
-
-        response = requests.post(url=ocr_key['APIGW_Invoke_url'], headers=headers, data=payload).json()
-        if 'images' in response:
-            if response['images'][0]['inferResult'] == 'SUCCESS':
-                return {
-                    "domain_name": ocr_key['domain_name'],
-                    "category": ocr_key['category'],
-                    "ocr_result": response
-                }
-    return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=response)
-
-
-def ocr_request_v2_by_url_total(user_id: int, image_url: str, file_name_extension: str, db: Session):
-    for ocr_key in ocr_keys:
-        request_json = {
-            'images': [
-                {
-                    'format': file_name_extension,
-                    'name': 'image',
-                    'url': image_url
-                }
-            ],
-            'requestId': 'ocr-request',
-            'version': 'V2',
-            'timestamp': int(round(time.time() * 1000))
-        }
-
-        payload = json.dumps(request_json).encode('UTF-8')
-        headers = {
-            'X-OCR-SECRET': ocr_key['secret_key'],
-            'Content-Type': 'application/json'
-        }
-
-        response = requests.post(url=ocr_key['APIGW_Invoke_url'], headers=headers, data=payload).json()
-        if 'images' in response:
-            if response['images'][0]['inferResult'] == 'SUCCESS':
-                filtered_result = ocr_result_filter(response)
-                file_name = f"""{user_id}-{response['timestamp']}.json"""
-                with open(RESULT_FILE + file_name, "w+") as json_file:
-                    json.dump(filtered_result, json_file)
-
-                new_ocr_result = ocr_models.OcrResult(user_id=user_id,
-                                                      result_file_name=file_name,
-                                                      category=ocr_key['category'])
-                db.add(new_ocr_result)
-                db.commit()
-                db.refresh(new_ocr_result)
-                return {
-                    'ocr_id': new_ocr_result.id,
-                    "user_id": user_id,
-                    "category": ocr_key['category'],
-                    "domain_name": ocr_key['domain_name'],
-                    "ocr_result": filtered_result
-                }
-    return {
-        'user_id': None,
-        "domain_name": None,
-        "category": None,
-        "ocr_result": "Not Matched"
-    }
-
-
-def ocr_request_v2_by_url(user_id: int, image_url: str, file_name_extension: str, category: CategoryEnum, db: Session):
-    selected_ocr = ocr_keys[0]
-    for ocr_key in ocr_keys:
-        if ocr_key['category'] == category.value:
-            selected_ocr = ocr_key
+def ocr_request_by_url(image_url: str, file_name_extension: str, category):
+    ocr_key = get_ocr_key_by_category(category)
     request_json = {
         'images': [
             {
@@ -200,11 +61,69 @@ def ocr_request_v2_by_url(user_id: int, image_url: str, file_name_extension: str
 
     payload = json.dumps(request_json).encode('UTF-8')
     headers = {
-        'X-OCR-SECRET': selected_ocr['secret_key'],
+        'X-OCR-SECRET': ocr_key['secret_key'],
         'Content-Type': 'application/json'
     }
 
-    response = requests.post(url=selected_ocr['APIGW_Invoke_url'], headers=headers, data=payload).json()
+    response = requests.post(url=ocr_key['APIGW_Invoke_url'], headers=headers, data=payload).json()
+    return response
+
+
+def ocr_result_filter(response):
+    if response['images'][0]['inferResult'] == 'SUCCESS':
+        result = {}
+        for field in response['images'][0]['fields']:
+            result[field['name']] = field['inferText']
+
+        result_dict = {
+            'template_name': response['images'][0]['matchedTemplate']['name'],
+            'results': result
+        }
+        return result_dict
+    else:
+        return None
+
+
+def ocr_request_v2_by_url_total(user_id: str, image_url: str, file_name_extension: str, db: Session):
+    for ocr_key in ocr_keys:
+
+        response = ocr_request_by_url(image_url=image_url,
+                                      file_name_extension=file_name_extension,
+                                      category=ocr_key['category'])
+
+        if 'images' in response:
+            if response['images'][0]['inferResult'] == 'SUCCESS':
+                filtered_result = ocr_result_filter(response)
+                file_name = f"""{user_id}-{response['timestamp']}.json"""
+                with open(RESULT_FILE + file_name, "w+") as json_file:
+                    json.dump(filtered_result, json_file)
+
+                new_ocr_result = OcrResult(user_id=user_id,
+                                           result_file_name=file_name,
+                                           category=ocr_key['category'])
+                db.add(new_ocr_result)
+                db.commit()
+                db.refresh(new_ocr_result)
+
+                return ShowRequestOCR(
+                    ocr_id=new_ocr_result.id,
+                    user_id=user_id,
+                    category=ocr_key['category'],
+                    created_time=new_ocr_result.created_time,
+                    domain_name=ocr_key['domain_name'],
+                    ocr_result=filtered_result,
+                )
+    return HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                         detail=f'OCR Template match fail \n'
+                                f'reason : {response}')
+
+
+def ocr_request_v2_by_url(user_id: str, image_url: str, file_name_extension: str, category: CategoryEnum, db: Session):
+    ocr_key = get_ocr_key_by_category(category.value)
+    response = ocr_request_by_url(image_url=image_url,
+                                  file_name_extension=file_name_extension,
+                                  category=ocr_key['category'])
+
     if 'images' in response:
         if response['images'][0]['inferResult'] == 'SUCCESS':
             filtered_result = ocr_result_filter(response)
@@ -212,126 +131,88 @@ def ocr_request_v2_by_url(user_id: int, image_url: str, file_name_extension: str
             with open(RESULT_FILE + file_name, "w+") as json_file:
                 json.dump(filtered_result, json_file)
 
-            new_ocr_result = ocr_models.OcrResult(user_id=user_id,
-                                                  result_file_name=file_name,
-                                                  category=ocr_key['category'])
+            new_ocr_result = OcrResult(user_id=user_id,
+                                       result_file_name=file_name,
+                                       category=ocr_key['category'])
             db.add(new_ocr_result)
             db.commit()
             db.refresh(new_ocr_result)
-            return {
-                'ocr_id': new_ocr_result.id,
-                "user_id": user_id,
-                "category": ocr_key['category'],
-                "domain_name": ocr_key['domain_name'],
-                "ocr_result": filtered_result
-            }
-    else:
-        return {
-            "domain_name": None,
-            "category": None,
-            "ocr_result": 'Not Matched'
-        }
 
-
-# User Id를 추가한 요청
-def ocr_request_by_user(request: ocr_schemas.RequestOCRByUser, db: Session):
-    # Check User Exist
-    # user = db.query(user_models.User).filter(user_models.User.id == request.user_id).first()
-    # if not user:
-    #     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-    #                         detail=f'User with id {request.user_id} not found')
-
-    selected_ocr = ocr_keys[0]
-    for ocr_key in ocr_keys:
-        if ocr_key['category'] == request.ocr_type:
-            selected_ocr = ocr_key
-    request_json = {
-        'images': [
-            {
-                'format': request.s3_url.split('.')[-1],
-                'name': 'image',
-                'url': request.s3_url
-            }
-        ],
-        'requestId': 'ocr-request',
-        'version': 'V2',
-        'timestamp': int(round(time.time() * 1000))
-    }
-
-    payload = json.dumps(request_json).encode('UTF-8')
-    headers = {
-        'X-OCR-SECRET': selected_ocr['secret_key'],
-        'Content-Type': 'application/json'
-    }
-
-    response = requests.post(url=selected_ocr['APIGW_Invoke_url'], headers=headers, data=payload)
-
-    # save result by user
-    # TODO 추후 S3로 결과 업로드 예정
-    file_name = f"""{request.user_id}-{json.loads(response.text)['timestamp']}.json"""
-    with open(RESULT_FILE + file_name, "w+") as json_file:
-        json.dump(json.loads(response.text), json_file)
-
-    new_ocr_result = ocr_models.OcrResult(user_id=request.user_id, result_file_name=file_name)
-    db.add(new_ocr_result)
-    db.commit()
-
-    result = json.loads(response.text)
-    result['id'] = new_ocr_result.id
-    return result
+            return ShowRequestOCR(
+                ocr_id=new_ocr_result.id,
+                user_id=user_id,
+                category=ocr_key['category'],
+                created_time=new_ocr_result.created_time,
+                domain_name=ocr_key['domain_name'],
+                ocr_result=filtered_result,
+            )
+    return HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                         detail=f'OCR Template match fail \n'
+                                f'reason : {response}')
 
 
 # 결과 받기
 def get_ocr_result_by_OCR_ID(ocr_id: int, db: Session):
-    ocr_result = db.query(ocr_models.OcrResult).filter(ocr_models.OcrResult.id == ocr_id).first()
+    ocr_result = db.query(OcrResult).filter(OcrResult.id == ocr_id).first()
     if not ocr_result:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f'OCR Result with id {ocr_id} not found')
 
     with open(RESULT_FILE + ocr_result.result_file_name, "r") as json_file:
         result = json.load(json_file)
+    ocr_key = get_ocr_key_by_category(ocr_result.category)
+    return ShowRequestOCR(
+        ocr_id=ocr_result.id,
+        user_id=ocr_result.user_id,
+        category=ocr_result.category,
+        created_time=ocr_result.created_time,
+        domain_name=ocr_key['domain_name'],
+        ocr_result=result,
+    )
 
-    return {
-        'ocr_id': ocr_result.id,
-        'category': ocr_result.category,
-        'created_time': ocr_result.created_time,
-        'result': result
-    }
 
-
-def get_ocr_result_by_user(user_id: int, db: Session):
-    # Check User Exist
-    # user = db.query(user_models.User).filter(user_models.User.id == user_id).first()
-    # if not user:
-    #     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-    #                         detail=f'User with id {user_id} not found')
-
-    ocr_results = db.query(ocr_models.OcrResult).filter(ocr_models.OcrResult.user_id == user_id)
+def get_ocr_result_by_user(user_id: str, db: Session):
+    ocr_results = db.query(OcrResult).filter(OcrResult.user_id == user_id)
     if not ocr_results.first():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f'OCR Result not found')
     result = []
     for ocr_result in ocr_results.all():
+        ocr_key = get_ocr_key_by_category(ocr_result.category)
         with open(RESULT_FILE + ocr_result.result_file_name, "r") as json_file:
-            result.append(
-                {
-                    'user_id': ocr_result.user_id,
-                    'ocr_id': ocr_result.id,
-                    'category': ocr_result.category,
-                    'created_time': ocr_result.created_time,
-                    'result': json.load(json_file)
-                })
+            result.append(ShowRequestOCR(
+                ocr_id=ocr_result.id,
+                user_id=ocr_result.user_id,
+                category=ocr_result.category,
+                domain_name=ocr_key['domain_name'],
+                created_time=ocr_result.created_time,
+                ocr_result=json.load(json_file),
+            ))
     return result
 
 
-def delete_ocr_result_by_user(user_id: int, db: Session):
-    # Check User Exist
-    # user = db.query(user_models.User).filter(user_models.User.id == user_id).first()
-    # if not user:
-    #     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-    #                         detail=f'User with id {user_id} not found')
+def get_ocr_result_all(db: Session):
+    result = []
+    ocr_results = db.query(OcrResult).filter()
+    if not ocr_results.first():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f'OCR Result not found')
+    for ocr_result in ocr_results.all():
+        ocr_key = get_ocr_key_by_category(ocr_result.category)
+        with open(RESULT_FILE + ocr_result.result_file_name, "r") as json_file:
+            result.append(ShowRequestOCR(
+                ocr_id=ocr_result.id,
+                user_id=ocr_result.user_id,
+                category=ocr_result.category,
+                domain_name=ocr_key['domain_name'],
+                created_time=ocr_result.created_time,
+                ocr_result=json.load(json_file),
+            ))
+    return result
 
-    ocr_results = db.query(ocr_models.OcrResult).filter(ocr_models.OcrResult.user_id == user_id)
+
+def delete_ocr_result_by_user(user_id: str, db: Session):
+    ocr_results = db.query(OcrResult).filter(OcrResult.user_id == user_id)
     if not ocr_results.first():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f'OCR Result not found')
@@ -344,27 +225,8 @@ def delete_ocr_result_by_user(user_id: int, db: Session):
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-def get_ocr_result_all(db: Session):
-    result = []
-    ocr_results = db.query(ocr_models.OcrResult).filter()
-    if not ocr_results.first():
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f'OCR Result not found')
-    for ocr_result in ocr_results.all():
-        with open(RESULT_FILE + ocr_result.result_file_name, "r") as json_file:
-            result.append(
-                {
-                    'user_id': ocr_result.user_id,
-                    'ocr_id': ocr_result.id,
-                    'category': ocr_result.category,
-                    'created_time': ocr_result.created_time,
-                    'result': json.load(json_file)
-                })
-    return result
-
-
 def delete_ocr_result(ocr_id: int, db: Session):
-    ocr_result = db.query(ocr_models.OcrResult).filter(ocr_models.OcrResult.id == ocr_id)
+    ocr_result = db.query(OcrResult).filter(OcrResult.id == ocr_id)
     if not ocr_result.first():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f'OCR Result not found')

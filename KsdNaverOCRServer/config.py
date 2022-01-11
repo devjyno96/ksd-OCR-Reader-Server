@@ -8,7 +8,7 @@ load_dotenv()
 
 ROOT_DIR = str(Path(os.path.realpath(__file__)).parent.parent.absolute())
 sys.path.insert(0, ROOT_DIR)
-
+RESULT_FILE = ROOT_DIR + "/KsdNaverOCRServer/result/"
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")

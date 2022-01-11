@@ -1,5 +1,5 @@
+# Venv
 venv_folder="venv"
-
 if [ ! -d "$venv_folder" ]
 then
     echo "Venv Directory doesn't exist. Creating now"
@@ -8,6 +8,16 @@ then
 else
     echo "Venv Directory exists"
 fi
+# Result Directory
+if [ ! -d "./KsdNaverOCRServer/result" ]
+then
+    echo "result Directory doesn't exist. Creating now"
+    mkdir ./KsdNaverOCRServer/result
+    echo "result Directory created"
+else
+    echo "result Directory exists"
+fi
+
 
 # python3 -m pip install virtualenv
 source venv/bin/activate

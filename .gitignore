@@ -5,3 +5,5 @@
 /ocr-server.db
 /.env
 /ocr-domain.json
+/general-ocr-domain.json
+/KsdNaverOCRServer/tests/resource/ocr_image_list_in_s3.py

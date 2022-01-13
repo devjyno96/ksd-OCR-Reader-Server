@@ -81,6 +81,48 @@ class Order_1_OCR_Request_Test(BaseTest):
         response = self.test_client.get('/ocr/result/user', params={'user_id': request_data.user_id}).json()
         self.assertEqual(response['detail'], 'OCR Result not found', msg='test_delete_ocr_result_by_user')
 
+    def test_request_general_ocr(self):
+        from KsdNaverOCRServer.repository.general_ocr import request_general_ocr
+        request_data = RequestOCRByUser(
+            image_url='https://s3.ap-northeast-2.amazonaws.com/ivory.ksd.ocr.s3/test.JPG',
+            file_name_extension="jpg",
+            category=CategoryEnum.Development_Intelligence,
+            user_id='test_2',
+        )
+        result = request_general_ocr(image_url=request_data.image_url,
+                                     file_name_extension=request_data.file_name_extension)
+        self.assertIsNotNone(result, msg='test_request_general_ocr')
+
+    def test_find_template(self):
+        from KsdNaverOCRServer.repository.general_ocr import request_general_ocr, find_template
+        request_data = RequestOCRByUser(
+            image_url='https://s3.ap-northeast-2.amazonaws.com/ivory.ksd.ocr.s3/test.JPG',
+            file_name_extension="jpg",
+            category=CategoryEnum.Development_Intelligence,
+            user_id='test_2',
+        )
+        result = request_general_ocr(image_url=request_data.image_url,
+                                     file_name_extension=request_data.file_name_extension)
+        self.assertIsNotNone(result, msg='test_request_general_ocr')
+        test = find_template(result)
+        print()
+
+    def test_test(self):
+        from KsdNaverOCRServer.tests.resource.ocr_image_list_in_s3 import image_list
+        image_list = image_list
+        from KsdNaverOCRServer.repository.general_ocr import request_general_ocr, find_template
+        request_data = RequestOCRByUser(
+            image_url=image_list[0],
+            file_name_extension=image_list[0].split('.')[-1],
+            category=CategoryEnum.Total,
+            user_id='test_2',
+        )
+        result = request_general_ocr(image_url=request_data.image_url,
+                                     file_name_extension=request_data.file_name_extension)
+        self.assertIsNotNone(result, msg='test_request_general_ocr')
+        test = find_template(result)
+        print()
+
 
 if __name__ == "__main__":
     Order_1_OCR_Request_Test.main(warnings='ignore')

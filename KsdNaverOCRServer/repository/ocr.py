@@ -8,6 +8,7 @@ from fastapi import HTTPException, status, Response, UploadFile
 from sqlalchemy.orm import Session
 
 from KsdNaverOCRServer.config import NAVER_OCR_DOMAIN_KEY_LIST as ocr_keys
+from KsdNaverOCRServer.config import GENERAL_OCR_DOMAIN_KEY
 from KsdNaverOCRServer.config import ROOT_DIR, RESULT_FILE
 from KsdNaverOCRServer.enums import CategoryEnum
 from KsdNaverOCRServer.models.ocr import OcrResult
@@ -15,6 +16,8 @@ from KsdNaverOCRServer.schemas.ocr import ShowRequestOCR
 
 
 def get_ocr_key_by_category(category: str):
+    if category == GENERAL_OCR_DOMAIN_KEY['category']:
+        return GENERAL_OCR_DOMAIN_KEY
     for ocr_key in ocr_keys:
         if ocr_key['category'] == category:
             return ocr_key

@@ -1,5 +1,8 @@
+import json
+
 from fastapi import status
 
+from KsdNaverOCRServer.repository.general_ocr import request_general_ocr, find_template
 from KsdNaverOCRServer.schemas.ocr import RequestOCRByUser
 from KsdNaverOCRServer.tests.base import BaseTest
 from KsdNaverOCRServer.enums import CategoryEnum
@@ -122,6 +125,82 @@ class Order_1_OCR_Request_Test(BaseTest):
         self.assertIsNotNone(result, msg='test_request_general_ocr')
         test = find_template(result)
         print()
+
+    def test_all_image_request_general_ocr(self):
+        with open(ROOT_DIR + "/KsdNaverOCRServer/tests/resource/image_file_list.json", "r") as st_json:
+            image_file_list = json.load(st_json)
+
+        result = {}
+        for image in image_file_list:
+            response = request_general_ocr(image_url=image['url'],
+                                           file_name_extension=image['url'].split('.')[-1])
+            folder_name = image['image_name'].split('/')[1]
+            image_name = image['image_name'].split('/')[2]
+
+            if folder_name not in result:
+                result[folder_name] = {}
+            result[folder_name][image_name] = response
+
+        with open('image_general_ocr_result_2.json', 'w', encoding="utf-8") as fp:
+            fp.write(json.dumps(result, ensure_ascii=False))
+
+    def test_all_images_find_template(self):
+        with open('image_general_ocr_result.json', 'r') as fp:
+            image_general_ocr_result_1 = json.load(fp)
+        with open('image_general_ocr_result_2.json', 'r') as fp:
+            image_general_ocr_result_2 = json.load(fp)
+
+        """
+        [
+            {
+                'expected' : str,
+                'result' : str,
+                'image_name'
+            },
+            ...
+        ]
+        """
+        result = []
+        count = 0
+        total = 0
+        for folder_name in image_general_ocr_result_1.keys():
+            for image_name in image_general_ocr_result_1[folder_name]:
+                total += 1
+                result_template = find_template(image_general_ocr_result_1[folder_name][image_name])
+                if folder_name != result_template:
+                    print(f'Not Match! | expected :{result_template} | actual : {folder_name}/{image_name}')
+                    count += 1
+                result.append({
+                    'expected': folder_name,
+                    'result': result_template,
+                    'image_name': image_name,
+                })
+        print(f"{count} / {total}")
+        with open('image_find_template.json', 'w', encoding="utf-8") as fp:
+            fp.write(json.dumps(result, ensure_ascii=False))
+
+    def test_template_find_error(self):
+        with open('image_general_ocr_result.json', 'r') as fp:
+            image_general_ocr_result_1 = json.load(fp)
+
+        result = []
+        for folder_name in image_general_ocr_result_1.keys():
+            result_str_list = []
+            intersection_result_str_list = []
+            for image_name in image_general_ocr_result_1[folder_name]:
+                if len(intersection_result_str_list) == 0:
+                    intersection_result_str_list = set(image_general_ocr_result_1[folder_name][image_name])
+                else:
+                    intersection_result_str_list = intersection_result_str_list & set(
+                        image_general_ocr_result_1[folder_name][image_name])
+                result_str_list += image_general_ocr_result_1[folder_name][image_name]
+            result.append({
+                'domain': folder_name,
+                '합집합': list(set(result_str_list)),
+                '교집합': list(intersection_result_str_list),
+            })
+        with open('template_find.json', 'w', encoding="utf-8") as fp:
+            fp.write(json.dumps(result, ensure_ascii=False))
 
 
 if __name__ == "__main__":

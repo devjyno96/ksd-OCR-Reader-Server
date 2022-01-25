@@ -167,8 +167,8 @@ class Order_1_OCR_Request_Test(BaseTest):
 
     def test_all_images_ocr_request_v2_by_url_total(self):
         image_file_list_json = RESOURCE_DIR + "/image_file_list.json"
-        ocr_result_json = RESOURCE_DIR + 'image_ocr_result_6.json'
-        ocr_result_format_json = RESOURCE_DIR + 'image_ocr_result_formatting_3.json'
+        ocr_result_json = RESOURCE_DIR + 'image_ocr_result_7.json'
+        ocr_result_format_json = RESOURCE_DIR + 'image_ocr_result_formatting_4.json'
         with open(image_file_list_json, "r") as st_json:
             image_file_list = json.load(st_json)
 
@@ -180,7 +180,9 @@ class Order_1_OCR_Request_Test(BaseTest):
                 category=CategoryEnum.Total,
                 user_id='test_test_all_images_ocr_request_v2_by_url_total',
             )
-            response = self.test_client.post('/ocr/url/v2', data=request_data.json()).json()
+            # response = self.test_client.post('/ocr/url/v2', data=request_data.json()).json()
+            import requests
+            response = requests.post('http://13.125.226.39:8000/ocr/url/v2', data=request_data.json()).json()
 
             folder_name = image['image_name'].split('/')[1]
             image_name = image['image_name'].split('/')[2]

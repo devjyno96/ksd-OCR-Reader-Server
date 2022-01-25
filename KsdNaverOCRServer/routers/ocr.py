@@ -34,46 +34,46 @@ def ocr_request_v2_by_url(request: RequestOCRByUser, db: Session = Depends(get_d
     TOTAL의 경우 아래 카테고리 중 해당하는 카테고리를 찾아서 반환해 줍니다.
 
         [
-          {
-            "domain_description": "1. 발달력 및 신체성장",
-            "domain_name": "Development & Physical growth",
-            "category": "DP"
-          },
-          {
-            "domain_description": "2. 혈액 검사",
-            "domain_name": "Medical checkup",
-            "category": "MC"
-          },
-          {
-            "domain_description": "3. 발달 및 지능검사",
-            "domain_name": "Development & Intelligence test",
-            "category": "DI"
-          },
-          {
-            "domain_description": "4. 사회성 및 자폐검사",
-            "domain_name": "Sociality & Autism tests",
-            "category": "SA"
-          },
-          {
-            "domain_description": "5. 언어 및 신경인지검사",
-            "domain_name": "Language test",
-            "category": "LR"
-          },
-          {
-            "domain_description": "6. 기질 및 성격검사",
-            "domain_name": "Temperament & Personality & Emotional state",
-            "category": "TC"
-          },
-          {
-            "domain_description": "7. 주의력 및 기질 및 학습검사",
-            "domain_name": "Attention & Neurocognition & Learning tests",
-            "category": "AL"
-          },
-          {
-            "domain_description": "8. 전체 검사",
-            "domain_name": "Total",
-            "category": "TOTAL"
-          }
+            {
+                "domain_description": "1 의학적검진",
+                "domain_name": "Medical Examination",
+                "category": "ME",
+            },
+            {
+                "domain_description": "2 인지및지능검사",
+                "domain_name": "Perception and Intelligence Test",
+                "category": "PI",
+            },
+            {
+                "domain_description": "3 사회성 및 자폐검사",
+                "domain_name": "Sociality & Autism Test",
+                "category": "SA",
+            },
+            {
+                "domain_description": "4 언어평가",
+                "domain_name": "Language Tests",
+                "category": "LR",
+            },
+            {
+                "domain_description": "5 주의력 및 신경인지검사",
+                "domain_name": "Attention and Neurocognitive Function Test",
+                "category": "AN",
+            },
+            {
+                "domain_description": "6 기질 성격 정서검사",
+                "domain_name": "Temperament and Character And Emotion Test",
+                "category": "TC",
+            },
+            {
+                "domain_description": "7 학습검사",
+                "domain_name": "Learning Test",
+                "category": "TC",
+            },
+            {
+                "domain_description": "8. 전체 검사",
+                "domain_name": "Total",
+                "category": "TOTAL"
+            }
         ]
     '''
 

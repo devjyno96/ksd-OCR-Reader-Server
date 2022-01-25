@@ -57,6 +57,8 @@ def get_domain_by_image_url(image_url: str, file_name_extension: str, ):
 def get_ocr_key_by_category(category: str):
     if category == GENERAL_OCR_DOMAIN_KEY['category']:
         return GENERAL_OCR_DOMAIN_KEY
+    if category == 'CI':
+        return ocr_keys[1]['sub_domain_list'][1]
     for ocr_key in ocr_keys:
         if ocr_key['category'] == category:
             return ocr_key
@@ -130,13 +132,19 @@ def ocr_request_v2_by_url_total(user_id: str, image_url: str, file_name_extensio
     ocr_key = get_domain_by_image_url(image_url=image_url,
                                       file_name_extension=file_name_extension, )
     request_ocr_list = []
+    response_ocr_key = None
     if ocr_key is None:
         # 찾지 못해서 전체 검사 진행
         request_ocr_list = ocr_keys
+    elif ocr_key['domain_description'] == '2 인지및지능검사':
+        # 찾은 ocr_key만 진행
+        response_ocr_key = ocr_key  # 값을 반환할 도메인
+        request_ocr_list = ocr_key['sub_domain_list']
     else:
         # 찾은 ocr_key만 진행
         request_ocr_list = [ocr_key]
 
+    result_dict = []
     for ocr_key in request_ocr_list:
 
         response = ocr_request_by_url(image_url=image_url,
@@ -145,29 +153,98 @@ def ocr_request_v2_by_url_total(user_id: str, image_url: str, file_name_extensio
 
         if 'images' in response:
             if response['images'][0]['inferResult'] == 'SUCCESS':
-                filtered_result = ocr_result_filter(response)
-                file_name = f"""{user_id}-{response['timestamp']}.json"""
-                with open(RESULT_FILE + file_name, "w+") as json_file:
-                    json.dump(filtered_result, json_file)
 
-                new_ocr_result = OcrResult(user_id=user_id,
-                                           result_file_name=file_name,
-                                           category=ocr_key['category'])
-                db.add(new_ocr_result)
-                db.commit()
-                db.refresh(new_ocr_result)
+                # 도메인이 2인 경우 반환은 서브 도메인이 아닌 일반 도메인으로 반환
+                # if request_ocr_list is not None:
+                #     ocr_key = response_ocr_key
+                #
+                # if ocr_key is None:
+                #     print()
+                result_dict.append({
+                    'domain_ocr_key': ocr_key,
+                    'response': response
+                })
 
-                return ShowRequestOCR(
-                    ocr_id=new_ocr_result.id,
-                    user_id=user_id,
-                    category=ocr_key['category'],
-                    created_time=new_ocr_result.created_time,
-                    domain_name=ocr_key['domain_name'],
-                    ocr_result=filtered_result,
-                )
-    return HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                         detail=f'OCR Template match fail \n'
-                                f'reason : {response}')
+                # filtered_result = ocr_result_filter(response)
+                # file_name = f"""{user_id}-{response['timestamp']}.json"""
+                # with open(RESULT_FILE + file_name, "w+") as json_file:
+                #     json.dump(filtered_result, json_file)
+                #
+                # new_ocr_result = OcrResult(user_id=user_id,
+                #                            result_file_name=file_name,
+                #                            category=ocr_key['category'])
+                # db.add(new_ocr_result)
+                # db.commit()
+                # db.refresh(new_ocr_result)
+                #
+                # result.append(ShowRequestOCR(
+                #     ocr_id=new_ocr_result.id,
+                #     user_id=user_id,
+                #     category=ocr_key['category'],
+                #     created_time=new_ocr_result.created_time,
+                #     domain_name=ocr_key['domain_name'],
+                #     ocr_result=filtered_result,
+                # ))
+
+    if len(result_dict) == 1:
+        response = result_dict[0]['response']
+        ocr_key = result_dict[0]['domain_ocr_key']
+        filtered_result = ocr_result_filter(response)
+        file_name = f"""{user_id}-{response['timestamp']}.json"""
+        with open(RESULT_FILE + file_name, "w+") as json_file:
+            json.dump(filtered_result, json_file)
+        if ocr_key is None:
+            print()
+        new_ocr_result = OcrResult(user_id=user_id,
+                                   result_file_name=file_name,
+                                   category=ocr_key['category'])
+        db.add(new_ocr_result)
+        db.commit()
+        db.refresh(new_ocr_result)
+
+        return ShowRequestOCR(
+            ocr_id=new_ocr_result.id,
+            user_id=user_id,
+            category=ocr_key['category'],
+            created_time=new_ocr_result.created_time,
+            domain_name=ocr_key['domain_name'],
+            ocr_result=filtered_result,
+        )
+    elif len(result_dict) > 1:
+        max_inferConfidence = result_dict[0]['response']['images'][0]['title']['inferConfidence']
+        max_result = result_dict[0]
+        for item in result_dict:
+            if max_inferConfidence < item['response']['images'][0]['title']['inferConfidence']:
+                max_inferConfidence = item['response']['images'][0]['title']['inferConfidence']
+                max_result = item
+
+        response = max_result['response']
+        ocr_key = max_result['domain_ocr_key']
+        filtered_result = ocr_result_filter(response)
+        file_name = f"""{user_id}-{response['timestamp']}.json"""
+        with open(RESULT_FILE + file_name, "w+") as json_file:
+            json.dump(filtered_result, json_file)
+
+        new_ocr_result = OcrResult(user_id=user_id,
+                                   result_file_name=file_name,
+                                   category=ocr_key['category'])
+        db.add(new_ocr_result)
+        db.commit()
+        db.refresh(new_ocr_result)
+
+        return ShowRequestOCR(
+            ocr_id=new_ocr_result.id,
+            user_id=user_id,
+            category=ocr_key['category'],
+            created_time=new_ocr_result.created_time,
+            domain_name=ocr_key['domain_name'],
+            ocr_result=filtered_result,
+        )
+    else:
+        return HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                             detail=f'OCR Template match fail \n'
+                                    f'reason : {response}\n'
+                                    f'ocr : {ocr_key}')
 
 
 def ocr_request_v2_by_url(user_id: str, image_url: str, file_name_extension: str, category: CategoryEnum, db: Session):

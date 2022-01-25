@@ -111,12 +111,12 @@ class Order_1_OCR_Request_Test(BaseTest):
                 result[folder_name] = {}
             result[folder_name][image_name] = response
 
-        with open(RESOURCE_DIR + 'image_general_ocr_result_5.json', 'w',
+        with open(RESOURCE_DIR + 'image_general_ocr_result_7.json', 'w',
                   encoding="utf-8") as fp:
             fp.write(json.dumps(result, ensure_ascii=False))
 
     def test_all_images_find_template(self):
-        with open(RESOURCE_DIR + 'image_general_ocr_result_5.json', 'r') as fp:
+        with open(RESOURCE_DIR + 'image_general_ocr_result_7.json', 'r') as fp:
             image_general_ocr_result = json.load(fp)
 
         result = []
@@ -137,11 +137,11 @@ class Order_1_OCR_Request_Test(BaseTest):
                     'image_name': image_name,
                 })
         print(f"{count} / {total}")
-        with open(RESOURCE_DIR + 'image_find_template_4.json', 'w', encoding="utf-8") as fp:
+        with open(RESOURCE_DIR + 'image_find_template_5.json', 'w', encoding="utf-8") as fp:
             fp.write(json.dumps(result, ensure_ascii=False))
 
     def test_template_find_error(self):
-        with open(RESOURCE_DIR + '/image_general_ocr_result_2.json', 'r') as fp:
+        with open(RESOURCE_DIR + '/image_general_ocr_result_7.json', 'r') as fp:
             image_general_ocr_result_1 = json.load(fp)
 
         result = []
@@ -162,18 +162,22 @@ class Order_1_OCR_Request_Test(BaseTest):
                 'domain': folder_name,
                 '숫자제거합집합': [x for x in list(set(result_str_list)) if re_numbers.search(x) is None and len(x) > 1],
             })
-        with open(RESOURCE_DIR + 'template_find.json', 'w', encoding="utf-8") as fp:
+        with open(RESOURCE_DIR + 'template_find_2.json', 'w', encoding="utf-8") as fp:
             fp.write(json.dumps(result, ensure_ascii=False))
 
     def test_all_images_ocr_request_v2_by_url_total(self):
         image_file_list_json = RESOURCE_DIR + "/image_file_list.json"
-        ocr_result_json = RESOURCE_DIR + 'image_ocr_result_6.json'
-        ocr_result_format_json = RESOURCE_DIR + 'image_ocr_result_formatting_3.json'
+        ocr_result_json = RESOURCE_DIR + 'image_ocr_result_only_2_2.json'
+        ocr_result_format_json = RESOURCE_DIR + 'image_ocr_result_formatting_only_2_2.json'
         with open(image_file_list_json, "r") as st_json:
             image_file_list = json.load(st_json)
 
         result = {}
         for image in image_file_list:
+            # if image['image_name'] != 'images/2.인지및지능검사/2-10. 지능검사_강남세브란스 WAIS.png':
+            #     continue
+            if image['image_name'].split('/')[1][0] != '2':
+                continue
             request_data = RequestOCRByUser(
                 image_url=image['url'],
                 file_name_extension=image['image_name'].split('.')[-1],
@@ -181,6 +185,52 @@ class Order_1_OCR_Request_Test(BaseTest):
                 user_id='test_test_all_images_ocr_request_v2_by_url_total',
             )
             response = self.test_client.post('/ocr/url/v2', data=request_data.json()).json()
+
+            folder_name = image['image_name'].split('/')[1]
+            image_name = image['image_name'].split('/')[2]
+
+            if folder_name not in result:
+                result[folder_name] = {}
+            result[folder_name][image_name] = response
+            print(f"{image['image_name']} save Complete")
+
+        with open(ocr_result_json, 'w', encoding="utf-8") as fp:
+            fp.write(json.dumps(result, ensure_ascii=False))
+
+        with open(ocr_result_json, 'r', encoding='utf-8') as fp:
+            json_data = json.load(fp)
+        result = {}
+        for domain_name in json_data:
+            if domain_name not in result:
+                result[domain_name] = {}
+            for image_name in json_data[domain_name]:
+                if "ocr_result" in json_data[domain_name][image_name]:
+                    result[domain_name][image_name] = json_data[domain_name][image_name]['ocr_result']
+                else:
+                    result[domain_name][image_name] = json_data[domain_name][image_name]
+
+        with open(ocr_result_format_json, 'w', encoding='utf-8') as fp:
+            fp.write(json.dumps(result, ensure_ascii=False))
+
+    def test_aws_server_all_images_ocr_request_v2_by_url_total(self):
+        image_file_list_json = RESOURCE_DIR + "/image_file_list.json"
+        ocr_result_json = RESOURCE_DIR + 'image_ocr_result_aws_2.json'
+        ocr_result_format_json = RESOURCE_DIR + 'image_ocr_result_formatting_aws_2.json'
+        with open(image_file_list_json, "r") as st_json:
+            image_file_list = json.load(st_json)
+
+        result = {}
+        for image in image_file_list:
+
+            request_data = RequestOCRByUser(
+                image_url=image['url'],
+                file_name_extension=image['image_name'].split('.')[-1],
+                category=CategoryEnum.Total,
+                user_id='test_test_all_images_ocr_request_v2_by_url_total',
+            )
+            response = self.test_client.post('http://13.125.226.39:8000/ocr/url/v2', data=request_data.json()).json()
+            # import requests
+            # response = requests.post('http://13.125.226.39:8000/ocr/url/v2', data=request_data.json()).json()
 
             folder_name = image['image_name'].split('/')[1]
             image_name = image['image_name'].split('/')[2]

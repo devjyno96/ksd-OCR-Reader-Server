@@ -67,7 +67,7 @@ def ocr_request_v2_by_url(request: RequestOCRByUser, db: Session = Depends(get_d
             {
                 "domain_description": "7 학습검사",
                 "domain_name": "Learning Test",
-                "category": "TC",
+                "category": "LT",
             },
             {
                 "domain_description": "8. 전체 검사",

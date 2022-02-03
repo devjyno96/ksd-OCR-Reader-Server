@@ -86,24 +86,25 @@ class Order_1_OCR_Request_Test(BaseTest):
         self.assertEqual(response['detail'], 'OCR Result not found', msg='test_delete_ocr_result_by_user')
 
     def test_request_general_ocr(self):
-        request_data = RequestOCRByUser(
-            image_url='https://s3.ap-northeast-2.amazonaws.com/ivory.ksd.ocr.s3/test.JPG',
-            file_name_extension="jpg",
-            category=CategoryEnum.Development_Intelligence,
-            user_id='test_2',
-        )
-        result = request_general_ocr(image_url=request_data.image_url,
-                                     file_name_extension=request_data.file_name_extension)
+        general_image_url = 'https://s3.ap-northeast-2.amazonaws.com/ivory.ksd.ocr.s3/images/2.%E1%84%8B%E1%85%B5%E1%86%AB%E1%84%8C%E1%85%B5%E1%84%86%E1%85%B5%E1%86%BE%E1%84%8C%E1%85%B5%E1%84%82%E1%85%B3%E1%86%BC%E1%84%80%E1%85%A5%E1%86%B7%E1%84%89%E1%85%A1/2-11.+%E1%84%87%E1%85%A1%E1%86%AF%E1%84%83%E1%85%A1%E1%86%AF+%E1%84%86%E1%85%B5%E1%86%BE+%E1%84%8C%E1%85%B5%E1%84%82%E1%85%B3%E1%86%BC_%E1%84%8B%E1%85%B3%E1%86%AB%E1%84%91%E1%85%A7%E1%86%BC%E1%84%89%E1%85%A5%E1%86%BC%E1%84%86%E1%85%A9+%E1%84%87%E1%85%A6%E1%84%8B%E1%85%B5%E1%86%AF%E1%84%85%E1%85%B5+(1).PNG',
+        file_name_extension = "PNG"
+
+        result = request_general_ocr(image_url=general_image_url,
+                                     file_name_extension=file_name_extension)
         self.assertIsNotNone(result, msg='test_request_general_ocr')
 
     def test_all_image_request_general_ocr(self):
-        with open(RESOURCE_DIR + "/image_file_list.json", "r") as st_json:
+        with open(RESOURCE_DIR + "/image_file_list_4.json", "r") as st_json:
             image_file_list = json.load(st_json)
 
         result = {}
         for image in image_file_list:
+            if "2.인지및지능검사" not in image['image_name']:
+                continue
             response = request_general_ocr(image_url=image['url'],
                                            file_name_extension=image['url'].split('.')[-1].lower())
+            if "2.인지및지능검사" in image['image_name']:
+                print()
             folder_name = image['image_name'].split('/')[1]
             image_name = image['image_name'].split('/')[2]
 
@@ -111,12 +112,12 @@ class Order_1_OCR_Request_Test(BaseTest):
                 result[folder_name] = {}
             result[folder_name][image_name] = response
 
-        with open(RESOURCE_DIR + 'image_general_ocr_result_7.json', 'w',
+        with open(RESOURCE_DIR + 'image_general_ocr_result_8.json', 'w',
                   encoding="utf-8") as fp:
             fp.write(json.dumps(result, ensure_ascii=False))
 
     def test_all_images_find_template(self):
-        with open(RESOURCE_DIR + 'image_general_ocr_result_7.json', 'r') as fp:
+        with open(RESOURCE_DIR + 'image_general_ocr_result_8.json', 'r') as fp:
             image_general_ocr_result = json.load(fp)
 
         result = []
@@ -126,7 +127,15 @@ class Order_1_OCR_Request_Test(BaseTest):
             for image_name in image_general_ocr_result[folder_name]:
                 total += 1
                 if image_general_ocr_result[folder_name][image_name] is None:
-                    print()
+                    count += 1
+                    print(f'General OCR Error : {folder_name}/{image_name}')
+                    result.append({
+                        'expected': folder_name,
+                        'result': image_general_ocr_result[folder_name][image_name],
+                        'image_name': image_name,
+                    })
+                    continue
+
                 result_template = find_template(image_general_ocr_result[folder_name][image_name])
                 if folder_name[0] != result_template['domain_description'][0]:
                     print(f'expected :{result_template["domain_description"]} | actual : {folder_name}/{image_name}')
@@ -137,7 +146,7 @@ class Order_1_OCR_Request_Test(BaseTest):
                     'image_name': image_name,
                 })
         print(f"{count} / {total}")
-        with open(RESOURCE_DIR + 'image_find_template_5.json', 'w', encoding="utf-8") as fp:
+        with open(RESOURCE_DIR + 'image_find_template_6.json', 'w', encoding="utf-8") as fp:
             fp.write(json.dumps(result, ensure_ascii=False))
 
     def test_template_find_error(self):

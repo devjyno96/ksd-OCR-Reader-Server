@@ -78,6 +78,7 @@ def ocr_request_v2_by_url(request: RequestOCRByUser, db: Session = Depends(get_d
     '''
 
     if request.category == CategoryEnum.Total:
+        # Todo 카테고리 분류 후 여기서 ocr_request_v2_by_url 카테고리 지정해서 요청하는 방식으로 변경(가독성 때문임) 22.03.23
         return ocr_repository.ocr_request_v2_by_url_total(user_id=request.user_id, image_url=request.image_url,
                                                           file_name_extension=request.file_name_extension, db=db)
     else:

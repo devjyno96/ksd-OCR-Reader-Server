@@ -99,12 +99,10 @@ class Order_1_OCR_Request_Test(BaseTest):
 
         result = {}
         for image in image_file_list:
-            if "2.인지및지능검사" not in image['image_name']:
-                continue
-            response = request_general_ocr(image_url=image['url'],
-                                           file_name_extension=image['url'].split('.')[-1].lower())
-            if "2.인지및지능검사" in image['image_name']:
-                print()
+            response = request_general_ocr(
+                image_url=image['url'],
+                file_name_extension=image['url'].split('.')[-1].lower())
+
             folder_name = image['image_name'].split('/')[1]
             image_name = image['image_name'].split('/')[2]
 
@@ -112,7 +110,8 @@ class Order_1_OCR_Request_Test(BaseTest):
                 result[folder_name] = {}
             result[folder_name][image_name] = response
 
-        with open(RESOURCE_DIR + 'image_general_ocr_result_8.json', 'w',
+        result_file_name = "22_03_17_01"
+        with open(RESOURCE_DIR + f'image_general_ocr_result_{result_file_name}.json', 'w',
                   encoding="utf-8") as fp:
             fp.write(json.dumps(result, ensure_ascii=False))
 
@@ -224,9 +223,10 @@ class Order_1_OCR_Request_Test(BaseTest):
             fp.write(json.dumps(result, ensure_ascii=False))
 
     def test_aws_server_all_images_ocr_request_v2_by_url_total(self):
+        result_file_name = "22_03_17_01"
         image_file_list_json = RESOURCE_DIR + "/image_file_list.json"
-        ocr_result_json = RESOURCE_DIR + 'image_ocr_result_aws_2.json'
-        ocr_result_format_json = RESOURCE_DIR + 'image_ocr_result_formatting_aws_2.json'
+        ocr_result_json = RESOURCE_DIR + f'image_ocr_result_aws_{result_file_name}.json'
+        ocr_result_format_json = RESOURCE_DIR + f'image_ocr_result_formatting_aws_{result_file_name}.json'
         with open(image_file_list_json, "r") as st_json:
             image_file_list = json.load(st_json)
 

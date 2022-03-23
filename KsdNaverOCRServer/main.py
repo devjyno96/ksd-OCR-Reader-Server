@@ -8,7 +8,7 @@ title = "아이보리 OCR API"
 description = """
 [Github Link](https://github.com/jinho9613/ksd-OCR-Reader-Server)
 """
-version = "2022년 1월 12일 버전"
+version = "2022년 3월 23일 버전"
 
 app = FastAPI(
     title=title,

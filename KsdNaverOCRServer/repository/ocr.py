@@ -133,6 +133,7 @@ def ocr_request_v2_by_url_total(user_id: str, image_url: str, file_name_extensio
                                       file_name_extension=file_name_extension, )
     request_ocr_list = []
     response_ocr_key = None
+    # Todo OCR Domain 전부 서브 도메인 양식으로 전환 예정 22.03.23
     if ocr_key is None:
         # 찾지 못해서 전체 검사 진행
         request_ocr_list = ocr_keys
@@ -153,7 +154,6 @@ def ocr_request_v2_by_url_total(user_id: str, image_url: str, file_name_extensio
 
         if 'images' in response:
             if response['images'][0]['inferResult'] == 'SUCCESS':
-
                 # 도메인이 2인 경우 반환은 서브 도메인이 아닌 일반 도메인으로 반환
                 # if request_ocr_list is not None:
                 #     ocr_key = response_ocr_key

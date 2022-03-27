@@ -17,7 +17,8 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
 
-with open(ROOT_DIR + "/ocr-domain.json") as json_file:
+with open(ROOT_DIR + "/ocr-domain_test_22_03_26_v2.json") as json_file:
+# with open(ROOT_DIR + "/ocr-domain.json") as json_file:
     NAVER_OCR_DOMAIN_KEY_LIST = json.load(json_file)
 with open(ROOT_DIR + "/general-ocr-domain.json") as json_file:
     GENERAL_OCR_DOMAIN_KEY = json.load(json_file)

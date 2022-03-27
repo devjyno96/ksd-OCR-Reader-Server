@@ -26,14 +26,19 @@ def find_template(general_ocr_result):
 
     return_domain = ocr_keys[0]
     max_count = 0
+    max_count_percent = 0.0
     for domain in ocr_keys:
         count = 0
         for word in domain['domain_keyword_list']:
             if word in total_str:
                 count += 1
+        # Todo 판단 알고리즘 변경
+        # 지금은 카운드 갯수로만 비교 -> 전체 퍼센트로 변경
         if count > max_count:
-            return_domain = domain
+        # if count / len(domain['domain_keyword_list']) > max_count_percent:
             max_count = count
+            # max_count_percent = count / len(domain['domain_keyword_list'])
+            return_domain = domain
 
     return return_domain
 
@@ -88,8 +93,9 @@ def ocr_request_by_image_file(image_file: UploadFile, category: CategoryEnum):
     return response
 
 
-def ocr_request_by_url(image_url: str, file_name_extension: str, category):
-    ocr_key = get_ocr_key_by_category(category)
+def ocr_request_by_url(image_url: str, file_name_extension: str, category, ocr_key=None):
+    if ocr_key is None:
+        ocr_key = get_ocr_key_by_category(category)
     request_json = {
         'images': [
             {
@@ -132,59 +138,34 @@ def ocr_request_v2_by_url_total(user_id: str, image_url: str, file_name_extensio
     ocr_key = get_domain_by_image_url(image_url=image_url,
                                       file_name_extension=file_name_extension, )
     request_ocr_list = []
-    response_ocr_key = None
     # Todo OCR Domain 전부 서브 도메인 양식으로 전환 예정 22.03.23
     if ocr_key is None:
         # 찾지 못해서 전체 검사 진행
         request_ocr_list = ocr_keys
-    elif ocr_key['domain_description'] == '2 인지및지능검사':
-        # 찾은 ocr_key만 진행
-        response_ocr_key = ocr_key  # 값을 반환할 도메인
-        request_ocr_list = ocr_key['sub_domain_list']
     else:
         # 찾은 ocr_key만 진행
         request_ocr_list = [ocr_key]
 
     result_dict = []
     for ocr_key in request_ocr_list:
+        request_sub_domain = [ocr_key]
+        if 'sub_domain_list' in ocr_key:
+            request_sub_domain = ocr_key['sub_domain_list']
 
-        response = ocr_request_by_url(image_url=image_url,
-                                      file_name_extension=file_name_extension,
-                                      category=ocr_key['category'])
+        for sub_domain_key in request_sub_domain:
+            response = ocr_request_by_url(
+                image_url=image_url,
+                file_name_extension=file_name_extension,
+                category=sub_domain_key['category'],
+                ocr_key=sub_domain_key)
 
-        if 'images' in response:
-            if response['images'][0]['inferResult'] == 'SUCCESS':
-                # 도메인이 2인 경우 반환은 서브 도메인이 아닌 일반 도메인으로 반환
-                # if request_ocr_list is not None:
-                #     ocr_key = response_ocr_key
-                #
-                # if ocr_key is None:
-                #     print()
-                result_dict.append({
-                    'domain_ocr_key': ocr_key,
-                    'response': response
-                })
-
-                # filtered_result = ocr_result_filter(response)
-                # file_name = f"""{user_id}-{response['timestamp']}.json"""
-                # with open(RESULT_FILE + file_name, "w+") as json_file:
-                #     json.dump(filtered_result, json_file)
-                #
-                # new_ocr_result = OcrResult(user_id=user_id,
-                #                            result_file_name=file_name,
-                #                            category=ocr_key['category'])
-                # db.add(new_ocr_result)
-                # db.commit()
-                # db.refresh(new_ocr_result)
-                #
-                # result.append(ShowRequestOCR(
-                #     ocr_id=new_ocr_result.id,
-                #     user_id=user_id,
-                #     category=ocr_key['category'],
-                #     created_time=new_ocr_result.created_time,
-                #     domain_name=ocr_key['domain_name'],
-                #     ocr_result=filtered_result,
-                # ))
+            if 'images' in response:
+                if response['images'][0]['inferResult'] == 'SUCCESS':
+                    # 도메인이 2인 경우 반환은 서브 도메인이 아닌 일반 도메인으로 반환
+                    result_dict.append({
+                        'domain_ocr_key': ocr_key,
+                        'response': response
+                    })
 
     if len(result_dict) == 1:
         response = result_dict[0]['response']

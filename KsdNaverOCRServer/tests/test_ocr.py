@@ -1,7 +1,10 @@
+import asyncio
 import json
 import re
 
+from asgiref.sync import sync_to_async, async_to_sync
 from fastapi import status
+from datetime import datetime
 
 from KsdNaverOCRServer.repository.ocr import request_general_ocr, find_template, ocr_request_v2_by_url_total
 from KsdNaverOCRServer.schemas.ocr import RequestOCRByUser
@@ -14,6 +17,13 @@ class Order_1_OCR_Request_Test(BaseTest):
 
     def setUp(self) -> None:
         self.host = 'http://localhost:8000/'
+
+        image_file_list_json = RESOURCE_DIR + "/ivory_sample_22_03_26_v2.json"
+        with open(image_file_list_json, "r") as st_json:
+            self.image_file_list = json.load(st_json)
+
+    def _get_now_time_str(self) -> str:
+        return datetime.now().strftime("%y-%m-%d %H-%M")
 
     def test_ocr_request_v2_by_url_total_and_delete(self):
         request_data = RequestOCRByUser(
@@ -222,65 +232,16 @@ class Order_1_OCR_Request_Test(BaseTest):
         with open(ocr_result_format_json, 'w', encoding='utf-8') as fp:
             fp.write(json.dumps(result, ensure_ascii=False))
 
-    def test_aws_server_all_images_ocr_request_v2_by_url_total(self):
-        result_file_name = "22_03_23_01"
-        image_file_list_json = RESOURCE_DIR + "/image_file_list.json"
-        ocr_result_json = RESOURCE_DIR + f'image_ocr_result_aws_{result_file_name}.json'
-        ocr_result_format_json = RESOURCE_DIR + f'image_ocr_result_formatting_aws_{result_file_name}.json'
-        with open(image_file_list_json, "r") as st_json:
-            image_file_list = json.load(st_json)
-
-        result = {}
-        for image in image_file_list:
-
-            request_data = RequestOCRByUser(
-                image_url=image['url'],
-                file_name_extension=image['image_name'].split('.')[-1],
-                category=CategoryEnum.Total,
-                user_id='test_test_all_images_ocr_request_v2_by_url_total',
-            )
-            # response = self.test_client.post('http://13.125.226.39:8000/ocr/url/v2', data=request_data.json()).json()
-            response = self.test_client.post('/ocr/url/v2', data=request_data.json()).json()
-            # import requests
-            # response = requests.post('http://13.125.226.39:8000/ocr/url/v2', data=request_data.json()).json()
-
-            folder_name = image['image_name'].split('/')[1]
-            image_name = image['image_name'].split('/')[2]
-
-            if folder_name not in result:
-                result[folder_name] = {}
-            result[folder_name][image_name] = response
-            print(f"{image['image_name']} save Complete")
-
-        with open(ocr_result_json, 'w', encoding="utf-8") as fp:
-            fp.write(json.dumps(result, ensure_ascii=False))
-
-        with open(ocr_result_json, 'r', encoding='utf-8') as fp:
-            json_data = json.load(fp)
-        result = {}
-        for domain_name in json_data:
-            if domain_name not in result:
-                result[domain_name] = {}
-            for image_name in json_data[domain_name]:
-                if "ocr_result" in json_data[domain_name][image_name]:
-                    result[domain_name][image_name] = json_data[domain_name][image_name]['ocr_result']
-                else:
-                    result[domain_name][image_name] = json_data[domain_name][image_name]
-
-        with open(ocr_result_format_json, 'w', encoding='utf-8') as fp:
-            fp.write(json.dumps(result, ensure_ascii=False))
-
     def test_aws_server_all_images_ocr_request_v2_by_url_total_v2(self):
-        result_file_name = "22_03_26_01"
-        image_file_list_json = RESOURCE_DIR + "/ivory_sample_22_03_26.json"
+        result_file_name = self._get_now_time_str()
         ocr_result_json = RESOURCE_DIR + f'image_ocr_result_aws_v2_{result_file_name}.json'
         ocr_result_format_json = RESOURCE_DIR + f'image_ocr_result_formatting_aws__v2{result_file_name}.json'
-        with open(image_file_list_json, "r") as st_json:
-            image_file_list = json.load(st_json)
 
         result = {}
-        for domain_name in image_file_list:
-            for image in image_file_list[domain_name]:
+        for domain_name in self.image_file_list:
+            if domain_name != '5.주의력 및 신경인지검사':
+                continue
+            for image in self.image_file_list[domain_name]:
 
                 request_data = RequestOCRByUser(
                     image_url=image['url'],
@@ -316,16 +277,62 @@ class Order_1_OCR_Request_Test(BaseTest):
         with open(ocr_result_format_json, 'w', encoding='utf-8') as fp:
             fp.write(json.dumps(result, ensure_ascii=False))
 
-    def test_all_image_request_general_ocr_v2(self):
-        result_file_name = '22_03_26_02'
-        image_file_list_json = RESOURCE_DIR + "/ivory_sample_22_03_26_v2.json"
-
-        with open(image_file_list_json, "r") as st_json:
-            image_file_list = json.load(st_json)
+    def test_aws_server_all_images_ocr_request_v2_by_url_total_v2_async(self):
+        result_file_name = self._get_now_time_str()
+        ocr_result_json = RESOURCE_DIR + f'image_ocr_result_aws_v2_{result_file_name}.json'
+        ocr_result_format_json = RESOURCE_DIR + f'image_ocr_result_formatting_aws__v2{result_file_name}.json'
 
         result = {}
-        for domain in image_file_list:
-            for image in image_file_list[domain]:
+        async_list = []
+        for domain_name in self.image_file_list:
+            if domain_name != '7.학습검사':
+                continue
+            for image in self.image_file_list[domain_name]:
+
+                request_data = RequestOCRByUser(
+                    image_url=image['url'],
+                    file_name_extension=image['url'].split('.')[-1],
+                    category=CategoryEnum.Total,
+                    user_id='test_test_all_images_ocr_request_v2_by_url_total',
+                )
+                def _to_async(request_data_in_func, image_in_func):
+                    response = self.test_client.post('/ocr/url/v2', data=request_data_in_func.json()).json()
+
+                    folder_name = image_in_func['key'].split('/')[0]
+                    image_name = image_in_func['key'].split('/')[1]
+
+                    if folder_name not in result:
+                        result[folder_name] = {}
+                    result[folder_name][image_name] = response
+                    print(f"{image_in_func['key']} save Complete")
+
+                async_list.append(sync_to_async(_to_async)(request_data, image))
+        async_to_sync(asyncio.gather)(*async_list)
+
+        with open(ocr_result_json, 'w', encoding="utf-8") as fp:
+            fp.write(json.dumps(result, ensure_ascii=False))
+
+        with open(ocr_result_json, 'r', encoding='utf-8') as fp:
+            json_data = json.load(fp)
+        result = {}
+        for domain_name in json_data:
+            if domain_name not in result:
+                result[domain_name] = {}
+            for image_name in json_data[domain_name]:
+                if "ocr_result" in json_data[domain_name][image_name]:
+                    result[domain_name][image_name] = json_data[domain_name][image_name]['ocr_result']
+                else:
+                    result[domain_name][image_name] = json_data[domain_name][image_name]
+
+        with open(ocr_result_format_json, 'w', encoding='utf-8') as fp:
+            fp.write(json.dumps(result, ensure_ascii=False))
+
+    def test_all_image_request_general_ocr_v2(self):
+        result_file_name = self._get_now_time_str()
+
+        result = {}
+        for domain in self.image_file_list:
+            for image in self.image_file_list[domain]:
                 response = request_general_ocr(
                     image_url=image['url'],
                     file_name_extension=image['key'].split('.')[-1].lower())

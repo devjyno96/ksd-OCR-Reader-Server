@@ -35,7 +35,7 @@ def find_template(general_ocr_result):
         # Todo 판단 알고리즘 변경
         # 지금은 카운드 갯수로만 비교 -> 전체 퍼센트로 변경
         if count > max_count:
-        # if count / len(domain['domain_keyword_list']) > max_count_percent:
+            # if count / len(domain['domain_keyword_list']) > max_count_percent:
             max_count = count
             # max_count_percent = count / len(domain['domain_keyword_list'])
             return_domain = domain
@@ -191,12 +191,30 @@ def ocr_request_v2_by_url_total(user_id: str, image_url: str, file_name_extensio
             domain_name=ocr_key['domain_name'],
             ocr_result=filtered_result,
         )
+
+    # sub domain을 사용해 분석한 경우 요청 결과 중 하나의 결과를 선택해야함
+    # 선택 알고리즘 변경 - naver ocr에서 제공하는 적중률 말고 결과 중 공백이 가장 적은 요청 선택
     elif len(result_dict) > 1:
-        max_inferConfidence = result_dict[0]['response']['images'][0]['title']['inferConfidence']
+        def get_black_count(response_dict):
+            # 해당 요청의 공백 갯수를 측정
+            count = 0
+            field_list = response_dict['response']['images'][0]['fields']
+            for f in field_list:
+                if len(f['inferText']) == 0:
+                    count += 1
+            return count
+
         max_result = result_dict[0]
+        min_blank_count = get_black_count(response_dict=result_dict[0])
+        # max_inferConfidence = result_dict[0]['response']['images'][0]['title']['inferConfidence']
         for item in result_dict:
-            if max_inferConfidence < item['response']['images'][0]['title']['inferConfidence']:
-                max_inferConfidence = item['response']['images'][0]['title']['inferConfidence']
+            # 선택 알고리즘 1 - naver ocr에서 제공하는 적중율을 토대로 선택함
+            # if max_inferConfidence < item['response']['images'][0]['title']['inferConfidence']:
+            #     max_inferConfidence = item['response']['images'][0]['title']['inferConfidence']
+            #     max_result = item
+            # 선택 알고리즘 2 - 요청 결과 중 공백이 가장 적은 요청을 선택함
+            if min_blank_count > get_black_count(item):
+                min_blank_count = get_black_count(item)
                 max_result = item
 
         response = max_result['response']

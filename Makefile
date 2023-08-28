@@ -7,3 +7,8 @@ init:
 .PHONY: test  ## Run all tests, skipping the type-checker integration tests
 test: 
 	pytest
+
+.PHONY: run  ## Run all tests, skipping the type-checker integration tests
+run: 
+	uvicorn KsdNaverOCRServer.main:app --reload --host 0.0.0.0
+

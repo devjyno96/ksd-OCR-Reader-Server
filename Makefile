@@ -1,14 +1,17 @@
-.PHONY: init  ## Install the package, dependencies, and pre-commit for local development
+.PHONY: init
 init:
 	pip3 install --upgrade pip
 	python3 -m pip install --upgrade setuptools
 	pip3 install -r requirements.txt
 
-.PHONY: test  ## Run all tests, skipping the type-checker integration tests
+.PHONY: test
 test: 
 	pytest
 
-.PHONY: run  ## Run all tests, skipping the type-checker integration tests
+.PHONY: run 
 run: 
-	uvicorn KsdNaverOCRServer.main:app --reload --host 0.0.0.0 --port 8000
+	uvicorn KsdNaverOCRServer.main:app --workers 2 --host 0.0.0.0 --port 8000
 
+.PHONY: deploy
+deploy: 
+	supervisord -c ./deploy/supervisord.conf

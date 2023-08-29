@@ -14,4 +14,4 @@ run:
 
 .PHONY: deploy
 deploy: 
-	supervisord -c ./deploy/supervisord.conf
+	nohup make run

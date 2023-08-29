@@ -10,5 +10,5 @@ test:
 
 .PHONY: run  ## Run all tests, skipping the type-checker integration tests
 run: 
-	uvicorn KsdNaverOCRServer.main:app --reload --host 0.0.0.0
+	uvicorn KsdNaverOCRServer.main:app --reload --host 0.0.0.0 --port 80
 

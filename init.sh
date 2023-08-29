@@ -22,4 +22,4 @@ fi
 # python3 -m pip install virtualenv
 source venv/bin/activate
 pip3 install -r requirements.txt
-uvicorn KsdNaverOCRServer.main:app --reload --host 0.0.0.0
+uvicorn KsdNaverOCRServer.main:app --reload --host 0.0.0.0 --port 8000

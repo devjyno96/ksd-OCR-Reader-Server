@@ -1,7 +1,9 @@
 # ksd-OCR-Reader-Server
 
 ## Service 등록하기
+
 ### service file 생성
+
 ```
 # sudo nano /etc/systemd/system/ksdserver.service
 [Unit]
@@ -9,8 +11,8 @@ Description=Run ksd-naver-ocr-server
 
 [Service]
 Type=simple
-WorkingDirectory=/home/ec2-user/service/ksd-OCR-Reader-Server
-ExecStart=/bin/bash /home/ec2-user/service/ksd-OCR-Reader-Server/init.sh
+WorkingDirectory=/home/ec2-user/project/ksd-OCR-Reader-Server
+ExecStart=/bin/bash /home/ec2-user/project/ksd-OCR-Reader-Server/init.sh
 Restart=on-failure
 
 [Install]
@@ -22,14 +24,16 @@ WantedBy=multi-user.target
 ```
 sudo systemctl start ksdserver.service
 ```
+
 ### Service 등록 확인하기
 
 ```
 sudo systemctl status ksdserver.service
 ```
+
 ```buildoutcfg
 # result
-[ec2-user@ip-0-0-0-0 ksd-OCR-Reader-Server]$ sudo systemctl status ksdserver.service 
+[ec2-user@ip-0-0-0-0 ksd-OCR-Reader-Server]$ sudo systemctl status ksdserver.service
 ● ksdserver.service - Run ksd-naver-ocr-server
    Loaded: loaded (/etc/systemd/system/ksdserver.service; disabled; vendor preset: disabled)
    Active: active (running) since 화 1900-01-01 01:01:01 UTC; 7s ago
@@ -52,4 +56,4 @@ sudo systemctl status ksdserver.service
 11월 30 14:54:31 ip-0-0-0-0.ap-northeast-2.compute.internal bash[10761]: INFO:     Application startup complete.
 ```
 
------
+---

@@ -83,7 +83,7 @@ class ImageRecognitionResult(BaseModel):
     tables: List[ImageTable] = []
 
 
-class OCRResponseV3(BaseModel):
+class ClovaOCRResponseV3(BaseModel):
     images: List[ImageRecognitionResult]
     requestId: str
     timestamp: int
@@ -103,7 +103,7 @@ class ImageRequestV3(BaseModel):
     url: str
 
 
-class OCRRequestV3(BaseModel):
+class ClovaOCRRequestV3(BaseModel):
     images: List[ImageRequestV3]
     requestId: str
     version: str

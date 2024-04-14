@@ -4,7 +4,7 @@ from KsdNaverOCRServer.naver_clova.repositories import (
     multithread_ocr_request_by_image_url,
     ocr_request_by_image_url,
 )
-from KsdNaverOCRServer.naver_clova.schemas import OCRResponseV3
+from KsdNaverOCRServer.naver_clova.schemas import ClovaOCRResponseV3
 from KsdNaverOCRServer.ocr.schemas import OCRShowV3
 from KsdNaverOCRServer.ocr.typed import MedicalExaminationConfig
 
@@ -20,7 +20,7 @@ def find_ocr_domains(image_url: str, file_name_extension: str) -> list[MedicalEx
     return NAVER_OCR_DOMAIN_KEY_LIST if ocr_key is None else [ocr_key]
 
 
-def find_template_in_OCR_response(ocr_response: OCRResponseV3) -> MedicalExaminationConfig | None:
+def find_template_in_OCR_response(ocr_response: ClovaOCRResponseV3) -> MedicalExaminationConfig | None:
     """
     general ocr 속에 domain key word를 가장 많이 포함한 domain을 찾는다
     """
@@ -77,19 +77,11 @@ def select_best_ocr_result(results: list[dict]) -> dict:
 def handle_ocr_results(result_dict: list[dict]) -> OCRShowV3:
     result = select_best_ocr_result(result_dict)
 
-    response: OCRResponseV3 = result["response"]
+    response: ClovaOCRResponseV3 = result["response"]
     ocr_key = result["domain_ocr_key"]
-
-    result_dict = None
-    if response.is_successed:
-        result = {}
-        for field in response.images[0].fields:
-            result[field.name] = field.inferText
-
-        result_dict = {"template_name": response.images[0].matchedTemplate.name, "results": result}
 
     return OCRShowV3(
         category=ocr_key["category"],
         domain_name=ocr_key["domain_name"],
-        ocr_result=result_dict,
+        result=response,
     )

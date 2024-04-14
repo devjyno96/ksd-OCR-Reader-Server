@@ -3,7 +3,7 @@ import threading
 import requests
 
 from KsdNaverOCRServer.config import GENERAL_OCR_DOMAIN_KEY, NAVER_OCR_DOMAIN_KEY_LIST
-from KsdNaverOCRServer.naver_clova.schemas import ImageRequestV3, OCRRequestV3, OCRResponseV3
+from KsdNaverOCRServer.naver_clova.schemas import ClovaOCRRequestV3, ClovaOCRResponseV3, ImageRequestV3
 
 
 def get_ocr_key_by_category(category: str):
@@ -16,8 +16,8 @@ def get_ocr_key_by_category(category: str):
             return ocr_key
 
 
-def ocr_request_by_image_url(image_url: str, file_name_extension: str, ocr_key) -> OCRResponseV3:
-    request_body = OCRRequestV3(
+def ocr_request_by_image_url(image_url: str, file_name_extension: str, ocr_key) -> ClovaOCRResponseV3:
+    request_body = ClovaOCRRequestV3(
         images=[
             ImageRequestV3(
                 format=file_name_extension,
@@ -32,13 +32,13 @@ def ocr_request_by_image_url(image_url: str, file_name_extension: str, ocr_key) 
     headers = {"X-OCR-SECRET": ocr_key["secret_key"], "Content-Type": "application/json"}
 
     response = requests.post(url=ocr_key["APIGW_Invoke_url"], headers=headers, data=payload).json()
-    result = OCRResponseV3.model_validate(response)
+    result = ClovaOCRResponseV3.model_validate(response)
     return result
 
 
 def multithread_ocr_request_by_image_url(
     image_url: str, file_name_extension: str, ocr_keys: list[dict]
-) -> list[OCRResponseV3]:
+) -> list[ClovaOCRResponseV3]:
     threads = []
     results = []
 

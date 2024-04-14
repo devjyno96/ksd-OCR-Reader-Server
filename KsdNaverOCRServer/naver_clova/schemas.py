@@ -1,6 +1,7 @@
+from time import time
 from typing import List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class Vertices(BaseModel):
@@ -82,8 +83,28 @@ class ImageRecognitionResult(BaseModel):
     tables: List[ImageTable] = []
 
 
-class OCRResponseV2(BaseModel):
+class OCRResponseV3(BaseModel):
     images: List[ImageRecognitionResult]
     requestId: str
     timestamp: int
     version: str
+
+    @property
+    def is_successed(self) -> bool:
+        if self.images:
+            if self.images[0].inferResult == "SUCCESS":
+                return True
+        return False
+
+
+class ImageRequestV3(BaseModel):
+    format: str
+    name: str
+    url: str
+
+
+class OCRRequestV3(BaseModel):
+    images: List[ImageRequestV3]
+    requestId: str
+    version: str
+    timestamp: int = Field(default_factory=lambda: int(round(time() * 1000)))

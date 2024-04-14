@@ -1,10 +1,9 @@
-import json
-import time
+import threading
 
 import requests
 
 from KsdNaverOCRServer.config import GENERAL_OCR_DOMAIN_KEY, NAVER_OCR_DOMAIN_KEY_LIST
-from KsdNaverOCRServer.naver_clova.schemas import OCRResponseV2
+from KsdNaverOCRServer.naver_clova.schemas import ImageRequestV3, OCRRequestV3, OCRResponseV3
 
 
 def get_ocr_key_by_category(category: str):
@@ -17,19 +16,42 @@ def get_ocr_key_by_category(category: str):
             return ocr_key
 
 
-def ocr_request_by_url(image_url: str, file_name_extension: str, category, ocr_key=None) -> OCRResponseV2:
-    if ocr_key is None:
-        ocr_key = get_ocr_key_by_category(category)
-    request_json = {
-        "images": [{"format": file_name_extension, "name": "image", "url": image_url}],
-        "requestId": "ocr-request",
-        "version": "V2",
-        "timestamp": int(round(time.time() * 1000)),
-    }
-
-    payload = json.dumps(request_json).encode("UTF-8")
+def ocr_request_by_image_url(image_url: str, file_name_extension: str, ocr_key) -> OCRResponseV3:
+    request_body = OCRRequestV3(
+        images=[
+            ImageRequestV3(
+                format=file_name_extension,
+                name="image",
+                url=image_url,
+            )
+        ],
+        requestId="ocr-request",
+        version="V2",
+    )
+    payload = request_body.model_dump_json()
     headers = {"X-OCR-SECRET": ocr_key["secret_key"], "Content-Type": "application/json"}
 
     response = requests.post(url=ocr_key["APIGW_Invoke_url"], headers=headers, data=payload).json()
-    result = OCRResponseV2.model_validate(response)
+    result = OCRResponseV3.model_validate(response)
     return result
+
+
+def multithread_ocr_request_by_image_url(
+    image_url: str, file_name_extension: str, ocr_keys: list[dict]
+) -> list[OCRResponseV3]:
+    threads = []
+    results = []
+
+    def thread_ocr_request(image_url: str, file_name_extension: str, ocr_key, results: list):
+        result = ocr_request_by_image_url(image_url, file_name_extension, ocr_key)
+        results.append(result)
+
+    for ocr_key in ocr_keys:
+        thread = threading.Thread(target=thread_ocr_request, args=(image_url, file_name_extension, ocr_key, results))
+        threads.append(thread)
+        thread.start()
+
+    for thread in threads:
+        thread.join()
+
+    return results

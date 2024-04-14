@@ -1,5 +1,3 @@
-from typing import Dict
-
 from pydantic import BaseModel
 
 from KsdNaverOCRServer.enums import CategoryEnum
@@ -14,4 +12,4 @@ class RequestOCRV3(BaseModel):
 class OCRShowV3(BaseModel):
     category: str
     domain_name: str
-    ocr_result: Dict
+    ocr_result: dict

@@ -123,7 +123,7 @@ def ocr_result_filter(response):
         return None
 
 
-def ocr_request_v2_by_url_total(user_id: str, image_url: str, file_name_extension: str, db: Session):
+def ocr_request_v2_by_url_total(user_id: int, image_url: str, file_name_extension: str, db: Session):
     ocr_key = get_domain_by_image_url(
         image_url=image_url,
         file_name_extension=file_name_extension,

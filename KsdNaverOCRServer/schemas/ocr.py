@@ -18,7 +18,7 @@ class RequestOCRByUser(RequestOCR):
 
 class ShowRequestOCR(BaseModel):
     ocr_id: int
-    user_id: str
+    user_id: int
     category: str
     domain_name: str
     created_time: datetime

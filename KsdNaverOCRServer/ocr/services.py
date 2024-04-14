@@ -1,10 +1,6 @@
-import json
-import time
-
-import requests
-
 from KsdNaverOCRServer.config import GENERAL_OCR_DOMAIN_KEY
 from KsdNaverOCRServer.config import NAVER_OCR_DOMAIN_KEY_LIST as ocr_keys
+from KsdNaverOCRServer.naver_clova.repositories import ocr_request_by_url
 from KsdNaverOCRServer.ocr.schemas import OCRShowV3
 from KsdNaverOCRServer.ocr.typed import MedicalExaminationConfig
 
@@ -42,6 +38,7 @@ def request_general_ocr(
 ):
     general_ocr_result = None
     response = ocr_request_by_url(image_url=image_url, file_name_extension=file_name_extension, category="GENERAL")
+    response = response.model_dump()
     if "images" in response:
         if response["images"][0]["inferResult"] == "SUCCESS":
             general_ocr_result = [x["inferText"] for x in response["images"][0]["fields"]]
@@ -68,23 +65,6 @@ def get_ocr_key_by_category(category: str):
             return ocr_key
 
 
-def ocr_request_by_url(image_url: str, file_name_extension: str, category, ocr_key=None):
-    if ocr_key is None:
-        ocr_key = get_ocr_key_by_category(category)
-    request_json = {
-        "images": [{"format": file_name_extension, "name": "image", "url": image_url}],
-        "requestId": "ocr-request",
-        "version": "V2",
-        "timestamp": int(round(time.time() * 1000)),
-    }
-
-    payload = json.dumps(request_json).encode("UTF-8")
-    headers = {"X-OCR-SECRET": ocr_key["secret_key"], "Content-Type": "application/json"}
-
-    response = requests.post(url=ocr_key["APIGW_Invoke_url"], headers=headers, data=payload).json()
-    return response
-
-
 def ocr_requests_by_image_url(image_url: str, file_name_extension: str, ocr_keys=list[MedicalExaminationConfig]):
     result_dict = []
     for ocr_key in ocr_keys:
@@ -99,7 +79,7 @@ def ocr_requests_by_image_url(image_url: str, file_name_extension: str, ocr_keys
                 category=sub_domain_key["category"],
                 ocr_key=sub_domain_key,
             )
-
+            response = response.model_dump()
             if "images" in response:
                 if response["images"][0]["inferResult"] == "SUCCESS":
                     # 도메인이 2인 경우 반환은 서브 도메인이 아닌 일반 도메인으로 반환

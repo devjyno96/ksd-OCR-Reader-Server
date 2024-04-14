@@ -1,16 +1,14 @@
-import base64
 import json
 import os
-import time
 
-import requests
-from fastapi import HTTPException, Response, UploadFile, status
+from fastapi import HTTPException, Response, status
 from sqlalchemy.orm import Session
 
 from KsdNaverOCRServer.config import GENERAL_OCR_DOMAIN_KEY, RESULT_FILE
 from KsdNaverOCRServer.config import NAVER_OCR_DOMAIN_KEY_LIST as ocr_keys
 from KsdNaverOCRServer.enums import CategoryEnum
 from KsdNaverOCRServer.models.ocr import OcrResult
+from KsdNaverOCRServer.naver_clova.repositories import ocr_request_by_url
 from KsdNaverOCRServer.schemas.ocr import ShowRequestOCR
 
 
@@ -71,44 +69,6 @@ def get_ocr_key_by_category(category: str):
     for ocr_key in ocr_keys:
         if ocr_key["category"] == category:
             return ocr_key
-
-
-def ocr_request_by_image_file(image_file: UploadFile, category: CategoryEnum):
-    ocr_key = get_ocr_key_by_category(category.value)
-    request_json = {
-        "images": [
-            {
-                "format": image_file.filename.split(".")[-1],
-                "name": "image",
-                "data": base64.b64encode(image_file.file.read()).decode("utf8"),
-            }
-        ],
-        "requestId": "ocr-request",
-        "version": "V2",
-        "timestamp": int(round(time.time() * 1000)),
-    }
-
-    payload = json.dumps(request_json).encode("UTF-8")
-    headers = {"X-OCR-SECRET": ocr_key["secret_key"], "Content-Type": "application/json"}
-    response = requests.post(url=ocr_key["APIGW_Invoke_url"], headers=headers, data=payload).json()
-    return response
-
-
-def ocr_request_by_url(image_url: str, file_name_extension: str, category, ocr_key=None):
-    if ocr_key is None:
-        ocr_key = get_ocr_key_by_category(category)
-    request_json = {
-        "images": [{"format": file_name_extension, "name": "image", "url": image_url}],
-        "requestId": "ocr-request",
-        "version": "V2",
-        "timestamp": int(round(time.time() * 1000)),
-    }
-
-    payload = json.dumps(request_json).encode("UTF-8")
-    headers = {"X-OCR-SECRET": ocr_key["secret_key"], "Content-Type": "application/json"}
-
-    response = requests.post(url=ocr_key["APIGW_Invoke_url"], headers=headers, data=payload).json()
-    return response
 
 
 def ocr_result_filter(response):

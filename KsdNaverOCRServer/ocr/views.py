@@ -2,15 +2,14 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from KsdNaverOCRServer.database import get_db
-from KsdNaverOCRServer.enums import CategoryEnum
-from KsdNaverOCRServer.repository import ocr as ocr_repository
-from KsdNaverOCRServer.schemas.ocr import OCRShowV3, RequestOCRByUser
+from KsdNaverOCRServer.ocr.schemas import OCRShowV3, RequestOCRV3
+from KsdNaverOCRServer.ocr.services import find_ocr_domains, handle_ocr_results, ocr_requests_by_image_url
 
 ocr_v3_router = APIRouter(prefix="/v3/ocr", tags=["OCR"])
 
 
 @ocr_v3_router.post("", status_code=status.HTTP_201_CREATED, response_model=OCRShowV3)
-def ocr_request_v3_by_url(request: RequestOCRByUser, db: Session = Depends(get_db)):
+def ocr_request_v3_by_url(request_body: RequestOCRV3, db: Session = Depends(get_db)):
     """
     # 이미지 파일 url을 전달 받는 API 입니다.
 
@@ -63,17 +62,9 @@ def ocr_request_v3_by_url(request: RequestOCRByUser, db: Session = Depends(get_d
             }
         ]
     """
-
-    if request.category == CategoryEnum.Total:
-        # Todo 카테고리 분류 후 여기서 ocr_request_v2_by_url 카테고리 지정해서 요청하는 방식으로 변경(가독성 때문임) 22.03.23
-        return ocr_repository.ocr_request_v2_by_url_total(
-            user_id=request.user_id, image_url=request.image_url, file_name_extension=request.file_name_extension, db=db
-        )
-    else:
-        return ocr_repository.ocr_request_v2_by_url(
-            user_id=request.user_id,
-            image_url=request.image_url,
-            file_name_extension=request.file_name_extension,
-            category=request.category,
-            db=db,
-        )
+    ocr_keys = find_ocr_domains(image_url=request_body.image_url, file_name_extension=request_body.file_name_extension)
+    results = ocr_requests_by_image_url(
+        image_url=request_body.image_url, file_name_extension=request_body.file_name_extension, ocr_keys=ocr_keys
+    )
+    result = handle_ocr_results(results)
+    return result

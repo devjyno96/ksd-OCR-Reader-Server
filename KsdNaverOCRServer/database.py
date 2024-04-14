@@ -7,7 +7,7 @@ from KsdNaverOCRServer import config
 
 
 def create_sqlite_db_engine():
-    SQLALCHAMY_DATABASE_URL = f'sqlite:////{config.ROOT_DIR}/ocr-server.db'
+    SQLALCHAMY_DATABASE_URL = f"sqlite:////{config.ROOT_DIR}/ocr-server.db"
 
     # Test code 에서도 사용하기 때문에 절대 경로로 지정해 준다
     return create_engine(SQLALCHAMY_DATABASE_URL, connect_args={"check_same_thread": False}, pool_pre_ping=True)
@@ -25,13 +25,16 @@ def create_mysql_db_engine():
     return create_engine(MYSQL_DATABASE_URL, pool_pre_ping=True)
 
 
-DATABASE_TYPE = 'MYSQL'
-DATABASE_TYPE = 'SQLITE'
+DATABASE_TYPE = "MYSQL"
+DATABASE_TYPE = "SQLITE"
 
-if DATABASE_TYPE == 'SQLITE':
+if DATABASE_TYPE == "SQLITE":
     engine = create_sqlite_db_engine()
-    SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False, )
-
+    SessionLocal = sessionmaker(
+        bind=engine,
+        autocommit=False,
+        autoflush=False,
+    )
 
     @event.listens_for(Engine, "connect")
     def set_sqlite_pragma(dbapi_connection, connection_record):
@@ -39,9 +42,13 @@ if DATABASE_TYPE == 'SQLITE':
         cursor.execute("PRAGMA foreign_keys=ON")
         cursor.close()
 
-elif DATABASE_TYPE == 'MYSQL':
+elif DATABASE_TYPE == "MYSQL":
     engine = create_mysql_db_engine()
-    SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False, )
+    SessionLocal = sessionmaker(
+        bind=engine,
+        autocommit=False,
+        autoflush=False,
+    )
 
 Base = declarative_base()
 

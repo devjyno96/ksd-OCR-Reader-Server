@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from KsdNaverOCRServer.models import manage
-from KsdNaverOCRServer.routers import ocr, user
+from KsdNaverOCRServer.routers import ocr
 
 title = "아이보리 OCR API"
 description = """
@@ -10,15 +10,11 @@ description = """
 """
 version = "2022년 3월 23일 버전"
 
-app = FastAPI(
-    title=title,
-    description=description,
-    version=version
-)
+app = FastAPI(title=title, description=description, version=version)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=['*'],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

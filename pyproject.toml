@@ -1,0 +1,82 @@
+[tool.poetry]
+name = "ksd-ocr-reader-server"
+version = "0.1.0"
+description = ""
+authors = ["devjyno <devjyno96@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+aiofiles = "^23.2.1"
+asgiref = "^3.8.1"
+bcrypt = "^4.1.2"
+certifi = "^2024.2.2"
+cffi = "^1.16.0"
+chardet = "^5.2.0"
+click = "^8.1.7"
+cryptography = "^42.0.5"
+ecdsa = "^0.19.0"
+et-xmlfile = "^1.1.0"
+fastapi = "^0.110.1"
+greenlet = "^3.0.3"
+h11 = "^0.14.0"
+idna = "^3.7"
+openpyxl = "^3.1.2"
+passlib = "^1.7.4"
+pyasn1 = "^0.6.0"
+pycparser = "^2.22"
+pydantic = "^2.7.0"
+pyjwt = "^2.8.0"
+pymysql = "^1.1.0"
+python-dotenv = "^1.0.1"
+python-jose = "^3.3.0"
+python-multipart = "^0.0.9"
+pytz = "^2024.1"
+requests = "^2.31.0"
+rsa = "^4.9"
+six = "^1.16.0"
+sqlalchemy = "^2.0.29"
+starlette = "^0.37.2"
+urllib3 = "^2.2.1"
+uvicorn = "^0.29.0"
+supervisor = "^4.2.5"
+typing-extensions = "^4.11.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.1.1"
+pre-commit = "^3.7.0"
+ruff = "^0.3.7"
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501",  # line too long, handled by black
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+    "W191",  # indentation contains tabs
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+
+
+[tool.ruff.lint.isort]
+known-third-party = ["fastapi", "pydantic", "starlette"]
+
+[tool.ruff.lint.pyupgrade]
+# Preserve types, even if a file imports `from __future__ import annotations`.
+keep-runtime-typing = true
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

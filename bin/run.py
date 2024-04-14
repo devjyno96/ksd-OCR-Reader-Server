@@ -1,7 +1,8 @@
-import uvicorn
-from pathlib import Path
 import os
 import sys
+from pathlib import Path
+
+import uvicorn
 
 if __name__ == "__main__":
     path = Path(os.path.realpath(__file__)).parent.parent.absolute()

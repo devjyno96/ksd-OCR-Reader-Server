@@ -1,33 +1,28 @@
-import os
-
 from fastapi import APIRouter, Depends, status
-from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
-from fastapi_jwt_auth.exceptions import JWTDecodeError
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
-from fastapi_jwt_auth import AuthJWT
-
 import KsdNaverOCRServer.database
-
 from KsdNaverOCRServer.repository import user
-
+from KsdNaverOCRServer.routers.routers_function import get_summary_location
 from KsdNaverOCRServer.schemas import user as schemas
 
-from KsdNaverOCRServer.routers.routers_function import get_summary_location
-
-router = APIRouter(
-    prefix='/user',
-    tags=['User']
-)
+router = APIRouter(prefix="/user", tags=["User"])
 get_db = KsdNaverOCRServer.database.get_db
 
 
-@router.post('/', status_code=status.HTTP_201_CREATED, response_model=schemas.ShowUser, responses={
-    409: {
-        "description": "Error: Conflict",
+@router.post(
+    "/",
+    status_code=status.HTTP_201_CREATED,
+    deprecated=True,
+    response_model=schemas.ShowUser,
+    responses={
+        409: {
+            "description": "Error: Conflict",
+        },
     },
-},
-             summary='create' + " | " + get_summary_location())
+    summary="create" + " | " + get_summary_location(),
+)
 def create(request: schemas.User, db: Session = Depends(get_db)):
     # router.post(summary= __name__ + get_summary(currentframe))
     """
@@ -45,11 +40,18 @@ def create(request: schemas.User, db: Session = Depends(get_db)):
     return user.create(request, db)
 
 
-@router.get('/identifier', status_code=status.HTTP_200_OK, response_model=schemas.ShowUser, responses={
-    404: {
-        "description": "Error: Not Found",
+@router.get(
+    "/identifier",
+    status_code=status.HTTP_200_OK,
+    deprecated=True,
+    response_model=schemas.ShowUser,
+    responses={
+        404: {
+            "description": "Error: Not Found",
+        },
     },
-}, summary='check_id' + " | " + get_summary_location())
+    summary="check_id" + " | " + get_summary_location(),
+)
 def check_id(username: str, db: Session = Depends(get_db)):
     """
     ### 설명
@@ -64,11 +66,17 @@ def check_id(username: str, db: Session = Depends(get_db)):
     return user.show_by_name(username, db)
 
 
-@router.post('/login', status_code=status.HTTP_200_OK, responses={
-    404: {
-        "description": "Error: Not Found",
+@router.post(
+    "/login",
+    status_code=status.HTTP_200_OK,
+    deprecated=True,
+    responses={
+        404: {
+            "description": "Error: Not Found",
+        },
     },
-}, summary='login' + " | " + get_summary_location())
+    summary="login" + " | " + get_summary_location(),
+)
 def login(request: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     """
     ### 설명
@@ -83,11 +91,17 @@ def login(request: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(
     return user.login(request, db)
 
 
-@router.put('/password', status_code=status.HTTP_200_OK, responses={
-    404: {
-        "description": "Error: Not Found",
+@router.put(
+    "/password",
+    status_code=status.HTTP_200_OK,
+    deprecated=True,
+    responses={
+        404: {
+            "description": "Error: Not Found",
+        },
     },
-}, summary='change_pw' + " | " + get_summary_location())
+    summary="change_pw" + " | " + get_summary_location(),
+)
 def change_pw(request: schemas.ChangePassword, db: Session = Depends(get_db)):
     """
     ### 설명
@@ -103,11 +117,17 @@ def change_pw(request: schemas.ChangePassword, db: Session = Depends(get_db)):
     return user.change_password(request, db)
 
 
-@router.delete('/{user_id}', status_code=status.HTTP_204_NO_CONTENT, responses={
-    404: {
-        "description": "Error: Not Found",
+@router.delete(
+    "/{user_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    deprecated=True,
+    responses={
+        404: {
+            "description": "Error: Not Found",
+        },
     },
-}, summary='delete' + " | " + get_summary_location())
+    summary="delete" + " | " + get_summary_location(),
+)
 def delete(user_id: int, db: Session = Depends(get_db)):
     """
     ### 설명
@@ -123,24 +143,18 @@ def delete(user_id: int, db: Session = Depends(get_db)):
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="user/login")
 
 
-@router.post('/refresh', summary='refresh' + " | " + get_summary_location())
-def refresh(Authorize: AuthJWT = Depends(), db: Session = Depends(get_db)):
-    """
-    ### 설명
-    - refresh token 전송 시, 검증 후 access token 생성해줌
-    ### 관련 모델
-    - User
-    - Refresh Token
-    """
-    return user.refresh_token(Authorize, db)
-
-
 # Profile
-@router.get('/profile/{user_id}', status_code=status.HTTP_200_OK, responses={
-    404: {
-        "description": "Error: Not Found",
+@router.get(
+    "/profile/{user_id}",
+    status_code=status.HTTP_200_OK,
+    deprecated=True,
+    responses={
+        404: {
+            "description": "Error: Not Found",
+        },
     },
-}, summary='show_profile' + " | " + get_summary_location())
+    summary="show_profile" + " | " + get_summary_location(),
+)
 def show_profile(user_id: int, db: Session = Depends(get_db)):
     """
     ### 설명
@@ -151,11 +165,17 @@ def show_profile(user_id: int, db: Session = Depends(get_db)):
     return user.show_profile(user_id, db)
 
 
-@router.post('/profile/', status_code=status.HTTP_201_CREATED, responses={
-    404: {
-        "description": "Error: Not Found",
+@router.post(
+    "/profile/",
+    status_code=status.HTTP_201_CREATED,
+    deprecated=True,
+    responses={
+        404: {
+            "description": "Error: Not Found",
+        },
     },
-}, summary='create_profile' + " | " + get_summary_location())
+    summary="create_profile" + " | " + get_summary_location(),
+)
 def create_profile(request: schemas.CreateProfile, db: Session = Depends(get_db)):
     """
     ### 설명
@@ -172,11 +192,17 @@ def create_profile(request: schemas.CreateProfile, db: Session = Depends(get_db)
     return user.create_profile(request, db)
 
 
-@router.put('/profile/{user_id}', status_code=status.HTTP_204_NO_CONTENT, responses={
-    404: {
-        "description": "Error: Not Found",
+@router.put(
+    "/profile/{user_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    deprecated=True,
+    responses={
+        404: {
+            "description": "Error: Not Found",
+        },
     },
-}, summary='update_profile' + " | " + get_summary_location())
+    summary="update_profile" + " | " + get_summary_location(),
+)
 def update_profile(user_id: int, requests: schemas.UpdateProfile, db: Session = Depends(get_db)):
     """
     ### 설명
@@ -187,11 +213,17 @@ def update_profile(user_id: int, requests: schemas.UpdateProfile, db: Session = 
     return user.update_profile(user_id, requests, db)
 
 
-@router.delete('/profile/{user_id}', status_code=status.HTTP_204_NO_CONTENT, responses={
-    404: {
-        "description": "Error: Not Found",
+@router.delete(
+    "/profile/{user_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    deprecated=True,
+    responses={
+        404: {
+            "description": "Error: Not Found",
+        },
     },
-}, summary='delete_profile' + " | " + get_summary_location())
+    summary="delete_profile" + " | " + get_summary_location(),
+)
 def delete_profile(user_id: int, db: Session = Depends(get_db)):
     """
     ### 설명

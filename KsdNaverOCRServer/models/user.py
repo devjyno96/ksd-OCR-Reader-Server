@@ -1,11 +1,11 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Boolean
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
 from KsdNaverOCRServer.database import Base
 
 
 class User(Base):
-    __tablename__ = 'users'
+    __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True)
@@ -26,29 +26,29 @@ class User(Base):
 
 
 class Profile(Base):
-    __tablename__ = 'profiles'
+    __tablename__ = "profiles"
 
     # id = Column(Integer, primary_key=True, index=True)
     # User-Profile : One To One
-    user_id = Column(Integer, ForeignKey('users.id'), primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
     user = relationship("User", back_populates="profile")
 
     email = Column(String, unique=True)
 
 
 class AdminUser(Base):
-    __tablename__ = 'admin_users'
+    __tablename__ = "admin_users"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'))
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
 
     user = relationship("User", back_populates="admin_user")
 
 
 class RefreshToken(Base):
-    __tablename__ = 'refresh_tokens'
+    __tablename__ = "refresh_tokens"
 
-    user_id = Column(Integer, ForeignKey('users.id'), primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
     user = relationship("User", back_populates="refresh_token")
 
     token = Column(String)

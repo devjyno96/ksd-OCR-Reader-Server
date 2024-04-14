@@ -1,21 +1,22 @@
-import unittest
-
 import os
+import unittest
 from pathlib import Path
 
 
 def sys_path_init():
     path = Path(os.path.realpath(__file__)).parent.parent.parent.absolute()
     import sys
+
     sys.path.append(str(path))
 
 
 def db_init():
     from KsdNaverOCRServer.models import manage
-    print('============Data Base Init Start============')
+
+    print("============Data Base Init Start============")
     manage.delete_all()
     manage.create_all()
-    print('============Data Base Init Complete============')
+    print("============Data Base Init Complete============")
 
 
 def run_all_test():
@@ -23,11 +24,11 @@ def run_all_test():
 
     db_init()
 
-    print('============Unit Test Start============')
+    print("============Unit Test Start============")
     testSuite = unittest.TestSuite()
     module_strings = [
         # 'user',
-        'ocr',
+        "ocr",
     ]
     [__import__(model_str) for model_str in module_strings]
     suites = [unittest.TestLoader().loadTestsFromName(model_str) for model_str in module_strings]
@@ -35,9 +36,9 @@ def run_all_test():
 
     result = unittest.TestResult()
     testSuite.run(result)
-    print('============Unit Test Complete============')
+    print("============Unit Test Complete============")
     print()
-    print('============Test Result Count============')
+    print("============Test Result Count============")
     print(result)
     print()
 
@@ -48,11 +49,11 @@ def run_all_test():
             print()
 
     if len(result.errors) != 0:
-        print('============Error List============')
+        print("============Error List============")
         print_errors(result.errors)
 
     if len(result.failures) != 0:
-        print('============Failure List============')
+        print("============Failure List============")
         print_errors(result.failures)
 
     print()

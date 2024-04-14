@@ -6,4 +6,4 @@ from pytz import timezone
 
 
 def get_now_time():
-    return datetime.datetime.now(timezone('Asia/Seoul'))
+    return datetime.datetime.now(timezone("Asia/Seoul"))

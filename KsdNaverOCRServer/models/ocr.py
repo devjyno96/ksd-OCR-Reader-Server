@@ -1,12 +1,11 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Enum, UniqueConstraint, Boolean
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, DateTime, Integer, String
 
-from KsdNaverOCRServer.models.models_function import get_now_time
 from KsdNaverOCRServer.database import Base
+from KsdNaverOCRServer.models.models_function import get_now_time
 
 
 class OcrResult(Base):
-    __tablename__ = 'ocr_result'
+    __tablename__ = "ocr_result"
     id = Column(Integer, primary_key=True, index=True)
     result_file_name = Column(String)
     category = Column(String)

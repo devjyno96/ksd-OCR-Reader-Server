@@ -1,7 +1,5 @@
-import enum
-from typing import List, Optional
+from typing import Optional
 
-from fastapi_jwt_auth import AuthJWT
 from pydantic import BaseModel
 
 
@@ -19,7 +17,7 @@ class ShowUser(BaseModel):
     last_name: str
     is_admin: bool
 
-    class Config():
+    class Config:
         orm_mode = True
 
 
@@ -50,18 +48,20 @@ class ShowUserWithID(BaseModel):
     last_name: str
     is_admin: Optional[str]
 
-    class Config():
+    class Config:
         orm_mode = True
 
 
 class Profile(BaseModel):
     email: Optional[str]
 
-    class Config():
+    class Config:
         orm_mode = True
 
+
 class CreateProfile(Profile):
-    user_id:int
+    user_id: int
+
 
 class UpdateProfile(Profile):
     pass

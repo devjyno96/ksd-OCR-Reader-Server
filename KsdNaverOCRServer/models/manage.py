@@ -1,7 +1,5 @@
-from sqlalchemy import MetaData
-
-from KsdNaverOCRServer.models import user, ocr
 from KsdNaverOCRServer.database import engine
+from KsdNaverOCRServer.models import ocr
 
 
 def create_all():

@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional, Any, Dict
+from typing import Dict
 
 from pydantic import BaseModel
 
@@ -17,6 +17,15 @@ class RequestOCRByUser(RequestOCR):
 
 
 class ShowRequestOCR(BaseModel):
+    ocr_id: int
+    user_id: str
+    category: str
+    domain_name: str
+    created_time: datetime
+    ocr_result: Dict
+
+
+class OCRShowV3(BaseModel):
     ocr_id: int
     user_id: str
     category: str

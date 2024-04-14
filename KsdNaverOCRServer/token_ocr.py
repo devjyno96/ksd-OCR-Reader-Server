@@ -1,12 +1,10 @@
 from datetime import datetime, timedelta
 
 from fastapi_jwt_auth import AuthJWT
-
 from jose import JWTError, jwt
 from pydantic import BaseModel
 
-from . import schemas
-from . import config
+from . import config, schemas
 
 SECRET_KEY = config.SECRET_KEY
 ALGORITHM = config.ALGORITHM
@@ -53,4 +51,4 @@ def verify_token(token: str, credentials_exception):
         token_data = schemas.user.TokenData(username=username)
         return token_data
     except JWTError:
-        raise credentials_exception
+        raise credentials_exception  # noqa B904

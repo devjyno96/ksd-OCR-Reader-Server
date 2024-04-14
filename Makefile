@@ -1,17 +1,22 @@
-.PHONY: init
-init:
-	pip3 install --upgrade pip
-	python3 -m pip install --upgrade setuptools
-	pip3 install -r requirements.txt
-
 .PHONY: test
-test: 
-	pytest
+test:
+	@poetry run pytest
 
-.PHONY: run 
-run: 
-	uvicorn KsdNaverOCRServer.main:app --workers 2 --host 0.0.0.0 --port 8000
+.PHONY: run
+run:
+	@poetry run uvicorn KsdNaverOCRServer.main:app --host 0.0.0.0 --port 8000 --reload
 
 .PHONY: deploy
-deploy: 
+deploy:
 	nohup make run
+
+
+.PHONY: lint
+lint:
+	@poetry run ruff check . --fix
+
+
+
+.PHONY: format
+format:
+	@poetry run ruff format .

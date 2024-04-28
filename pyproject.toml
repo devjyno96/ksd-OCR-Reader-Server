@@ -41,11 +41,13 @@ urllib3 = "^2.2.1"
 uvicorn = "^0.29.0"
 supervisor = "^4.2.5"
 typing-extensions = "^4.11.0"
+pydantic-settings = "^2.2.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"
 pre-commit = "^3.7.0"
 ruff = "^0.3.7"
+ipython = "^8.24.0"
 
 [tool.ruff]
 line-length = 120

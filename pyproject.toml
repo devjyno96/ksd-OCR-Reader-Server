@@ -42,6 +42,8 @@ uvicorn = "^0.29.0"
 supervisor = "^4.2.5"
 typing-extensions = "^4.11.0"
 pydantic-settings = "^2.2.1"
+psycopg2-binary = "^2.9.9"
+httpx = "^0.27.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"

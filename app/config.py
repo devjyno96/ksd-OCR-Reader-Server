@@ -3,12 +3,8 @@ import os
 import sys
 from pathlib import Path
 
-from dotenv import load_dotenv
 from pydantic import PostgresDsn, computed_field
 from pydantic_settings import BaseSettings
-
-load_dotenv()
-
 
 ROOT_DIR = str(Path(os.path.realpath(__file__)).parent.parent.absolute())
 RESOURCE_DIR = ROOT_DIR + "/KsdNaverOCRServer/tests/resource/"
@@ -25,28 +21,24 @@ class Settings(BaseSettings):
     ALGORITHM: str = "ALGORITHM"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
-    MYSQL_MANAGER_USER: str = "MYSQL_MANAGER_USER"
-    MYSQL_MANAGER_PASSWORD: str = "MYSQL_MANAGER_PASSWORD"
-    MYSQL_MANAGER_HOST: str = "MYSQL_MANAGER_HOST"
-    MYSQL_MANAGER_PORT: int = 3306
-    MYSQL_MANAGER_DB: str = "MYSQL_MANAGER_DB"
-    MYSQL_MANAGER_CHARSET: str = "MYSQL_MANAGER_CHARSET"
     # database
     DATABASE_HOSTNAME: str = "DATABASE_HOSTNAME"
     DATABASE_CREDENTIALS: str = "DATABASE_CREDENTIALS"
-    # this will support special chars for credentials
-    _DATABASE_CREDENTIAL_USER, _DATABASE_CREDENTIAL_PASSWORD = str(DATABASE_CREDENTIALS).split(":")  # noqa E501
     DATABASE_NAME: str = "DATABASE_NAME"
     DATABASE_PORT: int = 5432
 
     @computed_field  # type: ignore[misc]
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> PostgresDsn:
+        _DATABASE_CREDENTIAL_USER, _DATABASE_CREDENTIAL_PASSWORD = str(self.DATABASE_CREDENTIALS).split(":")  # noqa E501
         return PostgresDsn.build(
             scheme="postgresql+psycopg2",
-            username=self._DATABASE_CREDENTIAL_USER,
-            password=self._DATABASE_CREDENTIAL_PASSWORD,
+            username=_DATABASE_CREDENTIAL_USER,
+            password=_DATABASE_CREDENTIAL_PASSWORD,
             host=self.DATABASE_HOSTNAME,
             port=self.DATABASE_PORT,
             path=f"{self.DATABASE_NAME}",
         ).unicode_string()
+
+
+settings = Settings()

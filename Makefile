@@ -22,5 +22,11 @@ format:
 	@poetry run ruff format .
 
 
-local-compose-up
+.PHONY: shell
+shell:
+	@poetry run ipython
+
+
+.PHONY: PHONY
+local-compose-up:
 	@docker compose -f ./docker-compose.yml up -d

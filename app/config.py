@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
-from pydantic import MySQLDsn, computed_field
+from pydantic import PostgresDsn, computed_field
 from pydantic_settings import BaseSettings
 
 load_dotenv()
@@ -31,16 +31,22 @@ class Settings(BaseSettings):
     MYSQL_MANAGER_PORT: int = 3306
     MYSQL_MANAGER_DB: str = "MYSQL_MANAGER_DB"
     MYSQL_MANAGER_CHARSET: str = "MYSQL_MANAGER_CHARSET"
+    # database
+    DATABASE_HOSTNAME: str = "DATABASE_HOSTNAME"
+    DATABASE_CREDENTIALS: str = "DATABASE_CREDENTIALS"
+    # this will support special chars for credentials
+    _DATABASE_CREDENTIAL_USER, _DATABASE_CREDENTIAL_PASSWORD = str(DATABASE_CREDENTIALS).split(":")  # noqa E501
+    DATABASE_NAME: str = "DATABASE_NAME"
+    DATABASE_PORT: int = 5432
 
     @computed_field  # type: ignore[misc]
     @property
-    def SQLALCHEMY_DATABASE_URI(self) -> MySQLDsn:
-        return MySQLDsn.build(
-            scheme="mysql+pymysql",
-            username=self.MYSQL_MANAGER_USER,
-            password=self.MYSQL_MANAGER_PASSWORD,
-            host=self.MYSQL_MANAGER_HOST,
-            port=self.MYSQL_MANAGER_PORT,
-            path=self.MYSQL_MANAGER_DB,
-            query=f"charset={self.MYSQL_MANAGER_CHARSET}",
-        )
+    def SQLALCHEMY_DATABASE_URI(self) -> PostgresDsn:
+        return PostgresDsn.build(
+            scheme="postgresql+psycopg2",
+            username=self._DATABASE_CREDENTIAL_USER,
+            password=self._DATABASE_CREDENTIAL_PASSWORD,
+            host=self.DATABASE_HOSTNAME,
+            port=self.DATABASE_PORT,
+            path=f"{self.DATABASE_NAME}",
+        ).unicode_string()

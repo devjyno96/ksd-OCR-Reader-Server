@@ -20,3 +20,7 @@ lint:
 .PHONY: format
 format:
 	@poetry run ruff format .
+
+
+local-compose-up
+	@docker compose -f ./docker-compose.yml up -d

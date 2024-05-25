@@ -7,11 +7,26 @@ import requests
 from fastapi import HTTPException, Response, UploadFile, status
 from sqlalchemy.orm import Session
 
+from app.category.models import Category, CategoryKeyword, CategoryOCR
 from KsdNaverOCRServer.config import GENERAL_OCR_DOMAIN_KEY, RESULT_FILE
 from KsdNaverOCRServer.config import NAVER_OCR_DOMAIN_KEY_LIST as ocr_keys
 from KsdNaverOCRServer.enums import CategoryEnum
 from KsdNaverOCRServer.models.ocr import OcrResult
 from KsdNaverOCRServer.schemas.ocr import ShowRequestOCR
+
+
+class CategoryRepository:
+    def get_category_by_name(self, db: Session, name: str):
+        """카테고리 이름으로 카테고리를 가져옵니다."""
+        return db.query(Category).filter(Category.name == name).first()
+
+    def get_category_keywords(self, db: Session, category_id: int):
+        """특정 카테고리의 키워드를 가져옵니다."""
+        return db.query(CategoryKeyword).filter(CategoryKeyword.category_id == category_id).all()
+
+    def get_category_ocr(self, db: Session, category_id: int):
+        """특정 카테고리의 OCR 설정을 가져옵니다."""
+        return db.query(CategoryOCR).filter(CategoryOCR.category_id == category_id).all()
 
 
 def find_template(general_ocr_result):

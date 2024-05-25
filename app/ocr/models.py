@@ -11,11 +11,13 @@ if TYPE_CHECKING:
 
 class GeneralOCR(NaverClovaOCR):
     __tablename__ = "general_ocrs"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True, comment="Primary key of the general OCR settings")
 
 
 class CategoryOCR(NaverClovaOCR):
     __tablename__ = "category_ocrs"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    category_id: Mapped[int] = mapped_column(Integer, ForeignKey("categories.id"), nullable=False)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True, comment="Primary key of the category OCR settings")
+    
+    # relation
+    category_id: Mapped[int] = mapped_column(Integer, ForeignKey("categories.id"), nullable=False, comment="Foreign key referencing the category")
     category: Mapped["Category"] = relationship("Category", back_populates="category_ocr_configs")

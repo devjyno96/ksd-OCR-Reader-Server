@@ -1,12 +1,16 @@
-from KsdNaverOCRServer.database import engine
-from KsdNaverOCRServer.models import ocr
+from app.database.core import Base
+from app.database.manage import engine
 
 
 def create_all():
-    # user.Base.metadata.create_all(bind=engine)
-    ocr.Base.metadata.create_all(bind=engine)
+    """
+    create all defined tables
+    """
+    Base.metadata.create_all(bind=engine)
 
 
 def delete_all():
-    # user.Base.metadata.drop_all(bind=engine)
-    ocr.Base.metadata.drop_all(bind=engine)
+    """
+    delete all defined tables
+    """
+    Base.metadata.drop_all(bind=engine)

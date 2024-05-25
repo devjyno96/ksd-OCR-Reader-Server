@@ -1,1 +1,0 @@
-# TODO: OCR Domain Define

@@ -1,7 +1,12 @@
+from typing import TYPE_CHECKING
+
 from sqlalchemy import ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.core import Base
+
+if TYPE_CHECKING:
+    from app.ocr.models import CategoryOCR
 
 
 class Category(Base):
@@ -18,12 +23,3 @@ class CategoryKeyword(Base):
     category_id: Mapped[int] = mapped_column(Integer, ForeignKey("categories.id"), nullable=False)
     keyword: Mapped[str] = mapped_column(String, nullable=False)
     category: Mapped["Category"] = relationship("Category", back_populates="keywords")
-
-
-class CategoryOCR(Base):
-    __tablename__ = "category_ocrs"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    category_id: Mapped[int] = mapped_column(Integer, ForeignKey("categories.id"), nullable=False)
-    ocr_api_url: Mapped[str] = mapped_column(String, nullable=False)
-    ocr_api_key: Mapped[str] = mapped_column(String, nullable=False)
-    category: Mapped["Category"] = relationship("Category", back_populates="category_ocr_configs")

@@ -38,3 +38,29 @@ class ShowRequestOCR(BaseModel):
     domain_name: str
     created_time: datetime
     ocr_result: Dict
+
+
+class CategoryBase(BaseModel):
+    name: str
+    description: str
+
+
+class CategoryCreate(CategoryBase):
+    pass
+
+
+class CategoryUpdate(CategoryBase):
+    id: int
+
+
+class CategoryKeywordBase(BaseModel):
+    category_id: int
+    keyword: str
+
+
+class CategoryKeywordCreate(CategoryKeywordBase):
+    pass
+
+
+class CategoryKeywordUpdate(CategoryKeywordBase):
+    id: int

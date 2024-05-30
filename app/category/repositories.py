@@ -17,7 +17,9 @@ from KsdNaverOCRServer.models.ocr import OcrResult
 from KsdNaverOCRServer.schemas.ocr import ShowRequestOCR
 
 
-class CategoryRepository(BaseRepository[Category, CategoryCreate, CategoryUpdate]): ...
+class CategoryRepository(BaseRepository[Category, CategoryCreate, CategoryUpdate]):
+    def get_by_name(self, db_session: Session, name: str) -> Category | None:
+        return db_session.query(Category).filter(Category.name == name).first()
 
 
 def find_template(general_ocr_result):

@@ -1,9 +1,37 @@
 import threading
+import time
 
+import httpx
 import requests
+from fastapi import status
 
+from app.naver_clova_ocr.models import NaverClovaOCR
+from app.naver_clova_ocr.schemas import ClovaOCRResponseV3
 from KsdNaverOCRServer.config import GENERAL_OCR_DOMAIN_KEY, NAVER_OCR_DOMAIN_KEY_LIST
-from KsdNaverOCRServer.naver_clova.schemas import ClovaOCRRequestV3, ClovaOCRResponseV3, ImageRequestV3
+from KsdNaverOCRServer.naver_clova.schemas import ClovaOCRRequestV3, ImageRequestV3
+
+
+class NaverOCRRepository:
+    async def request_ocr_to_naver_clova_api(
+        self, image_url: str, image_format: str, naver_clova_ocr: NaverClovaOCR
+    ) -> ClovaOCRResponseV3 | None:
+        """네이버 OCR API를 호출하여 이미지를 처리합니다."""
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                naver_clova_ocr.ocr_api_url,
+                headers={"X-OCR-SECRET": naver_clova_ocr.ocr_api_key},
+                json={
+                    "images": [{"format": image_format, "name": "image", "url": image_url}],
+                    "requestId": "ocr-request",
+                    "version": "V2",
+                    "timestamp": int(round(time.time() * 1000)),
+                },
+            )
+
+        if response.status_code != status.HTTP_200_OK:
+            return None
+
+        return ClovaOCRResponseV3.model_validate(response.json())
 
 
 def get_ocr_key_by_category(category: str):

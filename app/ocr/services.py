@@ -3,41 +3,25 @@ from sqlalchemy.orm import Session
 from app.category.models import Category
 from app.category.repositories import CategoryRepository
 from app.naver_clova_ocr.services import call_ocr_api
-from app.ocr.repositories import OCRRepository
+from app.ocr.repositories import GeneralOCRRepository
 
 
-async def process_image(db: Session, image_url: str):
-    """이미지 URL을 받아 OCR 처리를 합니다."""
-    general_result = await process_general_ocr(db, image_url)
-
-    # 추출된 텍스트에서 가장 일치하는 카테고리 찾기
-    category = find_best_matching_category(db, general_result["result"])
-
-    # 카테고리 OCR 처리
-    category_result = await process_category_ocr(db, image_url, category.name)
-
-    # 최종 결과 반환 (간단하게 general_result와 category_result를 합쳐서 반환)
-    return {"general_result": general_result, "category_result": category_result}
-
-
+# TODO : 2024.05.29 여기 진행하고 있었음
 async def process_general_ocr(db: Session, image_url: str):
     """일반 OCR을 처리합니다."""
-    ocr_repository = OCRRepository()
-    general_ocr = ocr_repository.get_general_ocr(db)
+    general_ocr = GeneralOCRRepository.get_multi()[0]
     result = await call_ocr_api(general_ocr.ocr_api_url, general_ocr.ocr_api_key, image_url)
     return result
 
 
 async def process_category_ocr(db: Session, image_url: str, category_name: str):
     """카테고리 OCR을 처리합니다."""
-    category_repository = CategoryRepository()
-    ocr_repository = OCRRepository()
 
-    category = category_repository.get_category_by_name(db, category_name)
+    category = CategoryRepository.get_by_name(db, category_name)
     if not category:
         raise ValueError("Category not found")
 
-    category_ocr_configs = ocr_repository.get_category_ocr(db, category.id)
+    category_ocr_configs = category.category_ocr_configs
     results = []
     for config in category_ocr_configs:
         result = await call_ocr_api(config.ocr_api_url, config.ocr_api_key, image_url)
@@ -64,6 +48,6 @@ def find_best_matching_category(db: Session, text: str):
 def calculate_similarity(text: str, keywords):
     """텍스트와 키워드 간의 유사도를 계산합니다."""
     text_words = set(text.split())
-    keyword_words = set(kw.keyword for kw in keywords)
+    keyword_words = set(kw.keyword for kw in keywords)  # noqa C401
     intersection = text_words.intersection(keyword_words)
     return len(intersection) / len(keyword_words) if keyword_words else 0

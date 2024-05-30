@@ -1,9 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from KsdNaverOCRServer.models import manage
-from KsdNaverOCRServer.ocr.views import ocr_v3_router
-from KsdNaverOCRServer.routers import ocr
+from app.ocr.views import ocr_router_v4
 
 title = "아이보리 OCR API"
 description = """
@@ -21,8 +19,5 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-manage.create_all()
 
-app.include_router(ocr.router)
-app.include_router(ocr_v3_router)
-# app.include_router(user.router)
+app.include_router(ocr_router_v4)

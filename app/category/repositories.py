@@ -131,7 +131,7 @@ def ocr_result_filter(response):
         return None
 
 
-def ocr_request_v2_by_url_total(user_id: int, image_url: str, file_name_extension: str, db: Session):
+def ocr_request_v2_by_url_total(user_id: int, image_url: str, file_name_extension: str, db_session: Session):
     ocr_key = get_domain_by_image_url(
         image_url=image_url,
         file_name_extension=file_name_extension,
@@ -174,9 +174,9 @@ def ocr_request_v2_by_url_total(user_id: int, image_url: str, file_name_extensio
         if ocr_key is None:
             print()
         new_ocr_result = OcrResult(user_id=user_id, result_file_name=file_name, category=ocr_key["category"])
-        db.add(new_ocr_result)
-        db.commit()
-        db.refresh(new_ocr_result)
+        db_session.add(new_ocr_result)
+        db_session.commit()
+        db_session.refresh(new_ocr_result)
 
         return ShowRequestOCR(
             ocr_id=new_ocr_result.id,
@@ -221,9 +221,9 @@ def ocr_request_v2_by_url_total(user_id: int, image_url: str, file_name_extensio
             json.dump(filtered_result, json_file)
 
         new_ocr_result = OcrResult(user_id=user_id, result_file_name=file_name, category=ocr_key["category"])
-        db.add(new_ocr_result)
-        db.commit()
-        db.refresh(new_ocr_result)
+        db_session.add(new_ocr_result)
+        db_session.commit()
+        db_session.refresh(new_ocr_result)
 
         return ShowRequestOCR(
             ocr_id=new_ocr_result.id,
@@ -240,7 +240,9 @@ def ocr_request_v2_by_url_total(user_id: int, image_url: str, file_name_extensio
         )
 
 
-def ocr_request_v2_by_url(user_id: str, image_url: str, file_name_extension: str, category: CategoryEnum, db: Session):
+def ocr_request_v2_by_url(
+    user_id: str, image_url: str, file_name_extension: str, category: CategoryEnum, db_session: Session
+):
     ocr_key = get_ocr_key_by_category(category.value)
     response = ocr_request_by_url(
         image_url=image_url, file_name_extension=file_name_extension, category=ocr_key["category"]
@@ -254,9 +256,9 @@ def ocr_request_v2_by_url(user_id: str, image_url: str, file_name_extension: str
                 json.dump(filtered_result, json_file)
 
             new_ocr_result = OcrResult(user_id=user_id, result_file_name=file_name, category=ocr_key["category"])
-            db.add(new_ocr_result)
-            db.commit()
-            db.refresh(new_ocr_result)
+            db_session.add(new_ocr_result)
+            db_session.commit()
+            db_session.refresh(new_ocr_result)
 
             return ShowRequestOCR(
                 ocr_id=new_ocr_result.id,
@@ -272,8 +274,8 @@ def ocr_request_v2_by_url(user_id: str, image_url: str, file_name_extension: str
 
 
 # 결과 받기
-def get_ocr_result_by_OCR_ID(ocr_id: int, db: Session):
-    ocr_result = db.query(OcrResult).filter(OcrResult.id == ocr_id).first()
+def get_ocr_result_by_OCR_ID(ocr_id: int, db_session: Session):
+    ocr_result = db_session.query(OcrResult).filter(OcrResult.id == ocr_id).first()
     if not ocr_result:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"OCR Result with id {ocr_id} not found")
 
@@ -290,8 +292,8 @@ def get_ocr_result_by_OCR_ID(ocr_id: int, db: Session):
     )
 
 
-def get_ocr_result_by_user(user_id: str, db: Session):
-    ocr_results = db.query(OcrResult).filter(OcrResult.user_id == user_id)
+def get_ocr_result_by_user(user_id: str, db_session: Session):
+    ocr_results = db_session.query(OcrResult).filter(OcrResult.user_id == user_id)
     if not ocr_results.first():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="OCR Result not found")
     result = []
@@ -311,9 +313,9 @@ def get_ocr_result_by_user(user_id: str, db: Session):
     return result
 
 
-def get_ocr_result_all(db: Session):
+def get_ocr_result_all(db_session: Session):
     result = []
-    ocr_results = db.query(OcrResult).filter()
+    ocr_results = db_session.query(OcrResult).filter()
     if not ocr_results.first():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="OCR Result not found")
     for ocr_result in ocr_results.all():
@@ -332,25 +334,25 @@ def get_ocr_result_all(db: Session):
     return result
 
 
-def delete_ocr_result_by_user(user_id: str, db: Session):
-    ocr_results = db.query(OcrResult).filter(OcrResult.user_id == user_id)
+def delete_ocr_result_by_user(user_id: str, db_session: Session):
+    ocr_results = db_session.query(OcrResult).filter(OcrResult.user_id == user_id)
     if not ocr_results.first():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="OCR Result not found")
 
     for ocr_result in ocr_results.all():
         file_name = RESULT_FILE + ocr_result.result_file_name
-        db.delete(ocr_result)
-        db.commit()
+        db_session.delete(ocr_result)
+        db_session.commit()
         os.remove(file_name)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-def delete_ocr_result(ocr_id: int, db: Session):
-    ocr_result = db.query(OcrResult).filter(OcrResult.id == ocr_id)
+def delete_ocr_result(ocr_id: int, db_session: Session):
+    ocr_result = db_session.query(OcrResult).filter(OcrResult.id == ocr_id)
     if not ocr_result.first():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="OCR Result not found")
     file_name = ocr_result.first().result_file_name
     ocr_result.delete()
-    db.commit()
+    db_session.commit()
     os.remove(RESULT_FILE + file_name)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

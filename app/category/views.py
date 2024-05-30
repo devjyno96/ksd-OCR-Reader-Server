@@ -9,7 +9,7 @@ ocr_v3_router = APIRouter(prefix="/v3/ocr", tags=["OCR"])
 
 
 @ocr_v3_router.post("", status_code=status.HTTP_201_CREATED, response_model=OCRShowV3)
-def ocr_request_v3_by_url(request_body: RequestOCRV3, db: Session = Depends(get_db)):
+def ocr_request_v3_by_url(request_body: RequestOCRV3, db_session: Session = Depends(get_db)):
     """
     # Request Body
         {

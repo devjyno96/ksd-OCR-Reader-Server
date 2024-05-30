@@ -17,6 +17,10 @@ class Category(Base):
     keywords: Mapped[list["CategoryKeyword"]] = relationship("CategoryKeyword", back_populates="category")
     category_ocr_configs: Mapped[list["CategoryOCR"]] = relationship("CategoryOCR", back_populates="category")
 
+    @property
+    def category_keywords(self) -> list[str]:
+        return [category_keyword.keyword for category_keyword in self.keywords]
+
 
 class CategoryKeyword(Base):
     __tablename__ = "category_keywords"

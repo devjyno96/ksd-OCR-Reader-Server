@@ -2,52 +2,62 @@ from sqlalchemy.orm import Session
 
 from app.category.models import Category
 from app.category.repositories import CategoryRepository
-from app.naver_clova_ocr.services import call_ocr_api
+from app.naver_clova_ocr.repositories import NaverOCRRepository
+from app.naver_clova_ocr.schemas import ClovaOCRResponseV3
 from app.ocr.repositories import GeneralOCRRepository
 
 
-# TODO : 2024.05.29 여기 진행하고 있었음
-async def process_general_ocr(db: Session, image_url: str):
+async def process_general_ocr(db_session: Session, image_url: str, image_format: str) -> ClovaOCRResponseV3 | None:
     """일반 OCR을 처리합니다."""
-    general_ocr = GeneralOCRRepository.get_multi()[0]
-    result = await call_ocr_api(general_ocr.ocr_api_url, general_ocr.ocr_api_key, image_url)
+    general_ocr = GeneralOCRRepository.get_multi(db_session=db_session)[0]
+    if general_ocr is None:
+        return None
+    result = await NaverOCRRepository.request_ocr_to_naver_clova_api(
+        image_url=image_url, image_format=image_format, naver_clova_ocr=general_ocr
+    )
+
     return result
 
 
-async def process_category_ocr(db: Session, image_url: str, category_name: str):
+async def process_category_ocr(
+    db_session: Session, image_url: str, image_format: str, category: Category
+) -> list[ClovaOCRResponseV3 | None]:
     """카테고리 OCR을 처리합니다."""
-
-    category = CategoryRepository.get_by_name(db, category_name)
-    if not category:
-        raise ValueError("Category not found")
 
     category_ocr_configs = category.category_ocr_configs
     results = []
     for config in category_ocr_configs:
-        result = await call_ocr_api(config.ocr_api_url, config.ocr_api_key, image_url)
+        result = await NaverOCRRepository.request_ocr_to_naver_clova_api(
+            image_url=image_url, image_format=image_format, naver_clova_ocr=config
+        )
         results.append(result)
     return results
 
 
-def find_best_matching_category(db: Session, text: str):
+def find_best_matching_category(db_session: Session, clova_ocr_response_v3: ClovaOCRResponseV3) -> Category | None:
     """추출된 텍스트에서 가장 일치하는 카테고리를 찾습니다."""
-    category_repository = CategoryRepository()
-    categories = db.query(Category).all()
+    result_keywords = []
+    for fields in clova_ocr_response_v3.images[0].fields:
+        result_keywords.append(fields.inferText)
+
+    categories = CategoryRepository.get_multi(db_session=db_session)
+
     best_match = None
+
     highest_score = 0
     for category in categories:
-        score = calculate_similarity(text, category_repository.get_category_keywords(db, category.id))
+        score = calculate_similarity(category.category_keywords, result_keywords)
         if score > highest_score:
             highest_score = score
             best_match = category
-    if not best_match:
-        raise ValueError("No matching category found")
+
     return best_match
 
 
-def calculate_similarity(text: str, keywords):
+def calculate_similarity(category_keywords: list[str], target_keywords: list[str]):
     """텍스트와 키워드 간의 유사도를 계산합니다."""
-    text_words = set(text.split())
-    keyword_words = set(kw.keyword for kw in keywords)  # noqa C401
-    intersection = text_words.intersection(keyword_words)
-    return len(intersection) / len(keyword_words) if keyword_words else 0
+    category_keywords = set(category_keywords)
+    target_keywords = set(target_keywords)
+    intersection = category_keywords & target_keywords
+
+    return len(intersection) / len(target_keywords) if target_keywords else 0

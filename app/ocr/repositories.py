@@ -7,3 +7,7 @@ class GeneralOCRRepository(BaseRepository[GeneralOCR, GeneralOCRCreate, GeneralO
 
 
 class CategoryOCRRepository(BaseRepository[CategoryOCR, CategoryOCRCreate, CategoryOCRUpdate]): ...
+
+
+general_ocr_repository = GeneralOCRRepository(GeneralOCR)
+category_ocr_repository = CategoryOCRRepository([CategoryOCR, CategoryOCRCreate, CategoryOCRUpdate])

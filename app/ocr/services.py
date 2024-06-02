@@ -1,18 +1,18 @@
 from sqlalchemy.orm import Session
 
 from app.category.models import Category
-from app.category.repositories import CategoryRepository
+from app.category.repositories import category_repository
 from app.naver_clova_ocr.repositories import NaverOCRRepository
 from app.naver_clova_ocr.schemas import ClovaOCRResponseV3
-from app.ocr.repositories import GeneralOCRRepository
+from app.ocr.repositories import general_ocr_repository
 
 
 async def process_general_ocr(db_session: Session, image_url: str, image_format: str) -> ClovaOCRResponseV3 | None:
     """일반 OCR을 처리합니다."""
-    general_ocr = GeneralOCRRepository.get_multi(db_session=db_session)[0]
+    general_ocr = general_ocr_repository.get_multi(db_session=db_session)[0]
     if general_ocr is None:
         return None
-    result = await NaverOCRRepository.request_ocr_to_naver_clova_api(
+    result = await NaverOCRRepository().request_ocr_to_naver_clova_api(
         image_url=image_url, image_format=image_format, naver_clova_ocr=general_ocr
     )
 
@@ -20,14 +20,14 @@ async def process_general_ocr(db_session: Session, image_url: str, image_format:
 
 
 async def process_category_ocr(
-    db_session: Session, image_url: str, image_format: str, category: Category
+    image_url: str, image_format: str, category: Category
 ) -> list[ClovaOCRResponseV3 | None]:
     """카테고리 OCR을 처리합니다."""
 
     category_ocr_configs = category.category_ocr_configs
     results = []
     for config in category_ocr_configs:
-        result = await NaverOCRRepository.request_ocr_to_naver_clova_api(
+        result = await NaverOCRRepository().request_ocr_to_naver_clova_api(
             image_url=image_url, image_format=image_format, naver_clova_ocr=config
         )
         results.append(result)
@@ -40,7 +40,7 @@ def find_best_matching_category(db_session: Session, clova_ocr_response_v3: Clov
     for fields in clova_ocr_response_v3.images[0].fields:
         result_keywords.append(fields.inferText)
 
-    categories = CategoryRepository.get_multi(db_session=db_session)
+    categories = category_repository.get_multi(db_session=db_session)
 
     best_match = None
 

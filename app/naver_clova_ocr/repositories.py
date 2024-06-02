@@ -34,6 +34,9 @@ class NaverOCRRepository:
         return ClovaOCRResponseV3.model_validate(response.json())
 
 
+naver_ocr_repository = NaverOCRRepository()
+
+
 def get_ocr_key_by_category(category: str):
     if category == GENERAL_OCR_DOMAIN_KEY["category"]:
         return GENERAL_OCR_DOMAIN_KEY

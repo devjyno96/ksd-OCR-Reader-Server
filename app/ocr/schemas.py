@@ -6,7 +6,6 @@ class OCRRequest(BaseModel):
 
 
 class OCRResponse(BaseModel):
-    general_result: dict
     category_result: list
 
 

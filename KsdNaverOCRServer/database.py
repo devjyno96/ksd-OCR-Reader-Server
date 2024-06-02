@@ -1,7 +1,5 @@
-from sqlalchemy import create_engine, event
-from sqlalchemy.engine import Engine
+from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
 
 from KsdNaverOCRServer import config
 
@@ -25,30 +23,30 @@ def create_mysql_db_engine():
     return create_engine(MYSQL_DATABASE_URL, pool_pre_ping=True)
 
 
-DATABASE_TYPE = "MYSQL"
-DATABASE_TYPE = "SQLITE"
+# DATABASE_TYPE = "MYSQL"
+# DATABASE_TYPE = "SQLITE"
 
-if DATABASE_TYPE == "SQLITE":
-    engine = create_sqlite_db_engine()
-    SessionLocal = sessionmaker(
-        bind=engine,
-        autocommit=False,
-        autoflush=False,
-    )
+# if DATABASE_TYPE == "SQLITE":
+#     engine = create_sqlite_db_engine()
+#     SessionLocal = sessionmaker(
+#         bind=engine,
+#         autocommit=False,
+#         autoflush=False,
+#     )
 
-    @event.listens_for(Engine, "connect")
-    def set_sqlite_pragma(dbapi_connection, connection_record):
-        cursor = dbapi_connection.cursor()
-        cursor.execute("PRAGMA foreign_keys=ON")
-        cursor.close()
+#     @event.listens_for(Engine, "connect")
+#     def set_sqlite_pragma(dbapi_connection, connection_record):
+#         cursor = dbapi_connection.cursor()
+#         cursor.execute("PRAGMA foreign_keys=ON")
+#         cursor.close()
 
-elif DATABASE_TYPE == "MYSQL":
-    engine = create_mysql_db_engine()
-    SessionLocal = sessionmaker(
-        bind=engine,
-        autocommit=False,
-        autoflush=False,
-    )
+# elif DATABASE_TYPE == "MYSQL":
+#     engine = create_mysql_db_engine()
+#     SessionLocal = sessionmaker(
+#         bind=engine,
+#         autocommit=False,
+#         autoflush=False,
+#     )
 
 Base = declarative_base()
 

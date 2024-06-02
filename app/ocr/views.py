@@ -11,13 +11,13 @@ ocr_router_v4 = APIRouter(prefix="/v4")
 @ocr_router_v4.post("/ocr", response_model=OCRResponse)
 async def process_image_view(image_url: str, image_format: str, db_session: Session = Depends(get_db)):
     """이미지 URL을 받아 OCR 처리를 합니다."""
-    general_result = await process_general_ocr(db_session, image_url)
+    general_result = await process_general_ocr(db_session, image_url, image_format)
 
     if general_result is None:
         return "general ocr result is None -> Error"
 
-    category = find_best_matching_category(db_session, general_result["result"])
+    category = find_best_matching_category(db_session, general_result)
 
-    category_result = await process_category_ocr(db_session, image_url, category.name)
+    category_result = await process_category_ocr(image_url=image_url, image_format=image_format, category=category)
 
-    return OCRResponse(general_result=general_result, category_result=category_result)
+    return OCRResponse(category_result=category_result)

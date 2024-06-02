@@ -22,6 +22,9 @@ class CategoryRepository(BaseRepository[Category, CategoryCreate, CategoryUpdate
         return db_session.query(Category).filter(Category.name == name).first()
 
 
+category_repository = CategoryRepository(Category)
+
+
 def find_template(general_ocr_result):
     """
     general ocr 속에 domain key word를 가장 많이 포함한 domain을 찾는다

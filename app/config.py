@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 from pydantic import PostgresDsn, computed_field
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ROOT_DIR = str(Path(os.path.realpath(__file__)).parent.parent.absolute())
 RESOURCE_DIR = ROOT_DIR + "/KsdNaverOCRServer/tests/resource/"
@@ -17,12 +17,14 @@ with open(ROOT_DIR + "/general-ocr-domain.json") as json_file:
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+
     SECRET_KEY: str = "SECRET_KEY"
     ALGORITHM: str = "ALGORITHM"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
     # Admin
-    PASSWORD : str = "PASSWORD"
+    PASSWORD: str = "PASSWORD"
     # database
     DATABASE_HOSTNAME: str = "DATABASE_HOSTNAME"
     DATABASE_CREDENTIALS: str = "DATABASE_CREDENTIALS"

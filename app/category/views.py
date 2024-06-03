@@ -1,16 +1,17 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
-from KsdNaverOCRServer.database import get_db
-from KsdNaverOCRServer.ocr.schemas import OCRShowV3, RequestOCRV3
-from KsdNaverOCRServer.ocr.services import find_ocr_domains, handle_ocr_results, ocr_requests_by_image_url
+from app.category.schemas import OCRShowV3, RequestOCRV3
+from app.category.services import find_ocr_domains, handle_ocr_results, ocr_requests_by_image_url
+from app.database.core import get_db
 
 ocr_v3_router = APIRouter(prefix="/v3/ocr", tags=["OCR"])
 
 
 @ocr_v3_router.post("", status_code=status.HTTP_201_CREATED, response_model=OCRShowV3)
-def ocr_request_v3_by_url(request_body: RequestOCRV3, db_session: Session = Depends(get_db)):
+def ocr_request_v3_by_url(request_body: RequestOCRV3, db: Session = Depends(get_db)):
     """
+    # 삭제 될 API 입니다
     # Request Body
         {
           "image_url": "string", # public 접근 가능한 image url

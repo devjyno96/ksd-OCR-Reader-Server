@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqladmin import Admin
 
 from app.category.admin import CategoryAdmin, CategoryKeywordAdmin
+from app.category.views import ocr_v3_router
 from app.database.core import engine
 from app.ocr.admin import CategoryOCRAdmin, GeneralOCRAdmin
 from app.ocr.views import ocr_router_v4
@@ -25,6 +26,7 @@ app.add_middleware(
 
 
 app.include_router(ocr_router_v4)
+app.include_router(ocr_v3_router)
 
 # SqlAdmin Settings
 admin = Admin(app, engine)

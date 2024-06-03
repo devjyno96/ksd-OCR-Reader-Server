@@ -1,9 +1,5 @@
-from datetime import datetime
-from typing import Dict
-
 from pydantic import BaseModel, Field
 
-from KsdNaverOCRServer.enums import CategoryEnum
 from KsdNaverOCRServer.naver_clova.schemas import ClovaOCRResponseV3
 
 
@@ -19,25 +15,6 @@ class OCRShowV3(BaseModel):
     category: str = Field(..., description="category")
     domain_name: str = Field(..., description="domain_name")
     result: ClovaOCRResponseV3 = Field(..., description="Naver Clova Custom API V2 응답 바디 결과")
-
-
-class RequestOCR(BaseModel):
-    image_url: str
-    file_name_extension: str
-    category: CategoryEnum
-
-
-class RequestOCRByUser(RequestOCR):
-    user_id: str
-
-
-class ShowRequestOCR(BaseModel):
-    ocr_id: int
-    user_id: int
-    category: str
-    domain_name: str
-    created_time: datetime
-    ocr_result: Dict
 
 
 class CategoryBase(BaseModel):

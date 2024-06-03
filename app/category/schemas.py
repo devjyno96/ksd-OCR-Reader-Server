@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 
-from KsdNaverOCRServer.naver_clova.schemas import ClovaOCRResponseV3
+from app.naver_clova_ocr.schemas import ClovaOCRResponseV3
 
 
 class RequestOCRV3(BaseModel):

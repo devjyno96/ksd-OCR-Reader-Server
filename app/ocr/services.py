@@ -19,9 +19,7 @@ async def process_general_ocr(db_session: Session, image_url: str, image_format:
     return result
 
 
-async def process_category_ocr(
-    image_url: str, image_format: str, category: Category
-) -> list[ClovaOCRResponseV3 | None]:
+async def process_category_ocr(image_url: str, image_format: str, category: Category) -> ClovaOCRResponseV3:
     """카테고리 OCR을 처리합니다."""
 
     category_ocr_configs = category.category_ocr_configs
@@ -31,7 +29,12 @@ async def process_category_ocr(
             image_url=image_url, image_format=image_format, naver_clova_ocr=config
         )
         results.append(result)
-    return results
+
+    def get_blank_count(ocr_response: ClovaOCRResponseV3):
+        return sum(1 for f in ocr_response.images[0].fields if len(f.inferText) == 0)
+
+    best_result = min(results, key=get_blank_count)
+    return best_result
 
 
 def find_best_matching_category(db_session: Session, clova_ocr_response_v3: ClovaOCRResponseV3) -> Category | None:

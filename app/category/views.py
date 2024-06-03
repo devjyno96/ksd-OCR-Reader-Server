@@ -12,6 +12,9 @@ ocr_v3_router = APIRouter(prefix="/v3/ocr", tags=["OCR"])
 def ocr_request_v3_by_url(request_body: RequestOCRV3, db: Session = Depends(get_db)):
     """
     # 삭제 될 API 입니다
+
+    ---
+
     # Request Body
         {
           "image_url": "string", # public 접근 가능한 image url

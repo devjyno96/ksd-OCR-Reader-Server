@@ -21,6 +21,8 @@ class Settings(BaseSettings):
     ALGORITHM: str = "ALGORITHM"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
+    # Admin
+    PASSWORD : str = "PASSWORD"
     # database
     DATABASE_HOSTNAME: str = "DATABASE_HOSTNAME"
     DATABASE_CREDENTIALS: str = "DATABASE_CREDENTIALS"

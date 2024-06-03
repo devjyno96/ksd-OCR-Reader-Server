@@ -7,7 +7,7 @@ from app.category.views import ocr_v3_router
 from app.database.core import engine
 from app.ocr.admin import CategoryOCRAdmin, GeneralOCRAdmin
 from app.ocr.views import ocr_router_v4
-
+from app.admin import authentication_backend
 title = "아이보리 OCR API"
 description = """
 [Github Link](https://github.com/jinho9613/ksd-OCR-Reader-Server)
@@ -29,8 +29,7 @@ app.include_router(ocr_router_v4)
 app.include_router(ocr_v3_router)
 
 # SqlAdmin Settings
-admin = Admin(app, engine)
-
+admin = Admin(app, engine, authentication_backend=authentication_backend)
 
 # Add views
 admin.add_view(CategoryAdmin)

@@ -11,6 +11,10 @@ if TYPE_CHECKING:
 
 class Category(Base):
     __tablename__ = "categories"
+
+    def __str__(self):
+        return f"id={self.id}, name={self.name}, description={self.description}"
+
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True, comment="Primary key of the category")
     name: Mapped[str] = mapped_column(String, nullable=False, unique=True, comment="Name of the category")
     description: Mapped[str] = mapped_column(String, nullable=False, unique=True, comment="Description of the category")
@@ -24,6 +28,10 @@ class Category(Base):
 
 class CategoryKeyword(Base):
     __tablename__ = "category_keywords"
+
+    def __str__(self):
+        return f"id={self.id}, category_id={self.category_id}, keyword={self.keyword}"
+
     id: Mapped[int] = mapped_column(
         Integer, primary_key=True, index=True, comment="Primary key of the category keyword"
     )

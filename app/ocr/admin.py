@@ -15,3 +15,10 @@ class CategoryOCRAdmin(ModelView, model=CategoryOCR):
         CategoryOCR.ocr_api_url,
         CategoryOCR.ocr_api_key,
     ]
+
+    from_ajax_refs = {
+        "category": {
+            "fields": ("id", "name", "description"),
+            "order_by": ("name"),
+        },
+    }

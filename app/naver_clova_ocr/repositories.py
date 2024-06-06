@@ -1,3 +1,4 @@
+import logging
 import threading
 import time
 
@@ -9,6 +10,8 @@ from app.naver_clova_ocr.models import NaverClovaOCR
 from app.naver_clova_ocr.schemas import ClovaOCRResponseV3
 from KsdNaverOCRServer.config import GENERAL_OCR_DOMAIN_KEY, NAVER_OCR_DOMAIN_KEY_LIST
 from KsdNaverOCRServer.naver_clova.schemas import ClovaOCRRequestV3, ImageRequestV3
+
+logger = logging.getLogger(__name__)
 
 
 class NaverOCRRepository:
@@ -29,6 +32,7 @@ class NaverOCRRepository:
             )
 
         if response.status_code != status.HTTP_200_OK:
+            logger.error(response.json())
             return None
 
         return ClovaOCRResponseV3.model_validate(response.json())

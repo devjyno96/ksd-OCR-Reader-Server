@@ -2,12 +2,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqladmin import Admin
 
+from app.admin import authentication_backend
 from app.category.admin import CategoryAdmin, CategoryKeywordAdmin
 from app.category.views import ocr_v3_router
 from app.database.core import engine
 from app.ocr.admin import CategoryOCRAdmin, GeneralOCRAdmin
 from app.ocr.views import ocr_router_v4
-from app.admin import authentication_backend
+
 title = "아이보리 OCR API"
 description = """
 [Github Link](https://github.com/jinho9613/ksd-OCR-Reader-Server)

@@ -103,7 +103,7 @@ async def process_image_view(request_body: RequestOCRV3, db_session: Session = D
     return OCRShowV3(category=category.name, domain_name=category.description, result=category_result)
 
 
-@ocr_router_v4.post("/general-ocr", status_code=status.HTTP_201_CREATED, response_model=ClovaOCRResponseV3)
+@ocr_router_v4.post("/general-ocr", status_code=status.HTTP_201_CREATED, response_model=ClovaOCRResponseV3 | str)
 async def process_genaral_image_view(request_body: RequestOCRV3, db_session: Session = Depends(get_db)):
     """이미지 URL을 받아 General OCR 처리를 합니다. - Debug 용"""
     general_result = await process_general_ocr(db_session, request_body.image_url, request_body.file_name_extension)

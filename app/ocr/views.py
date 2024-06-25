@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, status
+from fastapi.exceptions import HTTPException
 from sqlalchemy.orm import Session
 
 from app.category.schemas import OCRShowV3, RequestOCRV3
@@ -95,7 +96,11 @@ async def process_image_view(request_body: RequestOCRV3, db_session: Session = D
         return "general ocr result is None -> Error"
 
     category = find_best_matching_category(db_session, general_result)
-
+    if category is None:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"msg": "category search fail", "general_ocr_result": general_result},
+        )
     category_result = await process_category_ocr(
         image_url=request_body.image_url, image_format=request_body.file_name_extension, category=category
     )

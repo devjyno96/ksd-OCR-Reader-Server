@@ -1,7 +1,7 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import JSONResponse, PlainTextResponse
 from sqladmin import Admin
 
 from app.admin import authentication_backend
@@ -32,32 +32,13 @@ app.include_router(ocr_router_v4)
 app.include_router(ocr_v3_router)
 
 
-@app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    traceback_str = "".join(
-        ["\n  " + line for line in exc.__traceback__.format().splitlines()]
+
+@app.exception_handler(HTTPException)
+async def custom_http_exception_handler(request: Request, exc: HTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail},
     )
-    error_message = f"""
-        HTTP Error {exc.status_code}: {exc.detail}
-
-        Traceback:
-        {traceback_str}
-    """
-    return PlainTextResponse(content=error_message, status_code=400)
-
-
-@app.exception_handler(Exception)
-async def unicorn_exception_handler(request: Request, exc: Exception):
-    traceback_str = "".join(
-        ["\n  " + line for line in exc.__traceback__.format().splitlines()]
-    )
-    error_message = f"""
-        HTTP Error {exc.status_code}: {exc.detail}
-
-        Traceback:
-        {traceback_str}
-    """
-    return PlainTextResponse(content=error_message, status_code=500)
 
 
 # SqlAdmin Settings

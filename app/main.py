@@ -1,5 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import PlainTextResponse
 from sqladmin import Admin
 
 from app.admin import authentication_backend
@@ -28,6 +30,17 @@ app.add_middleware(
 
 app.include_router(ocr_router_v4)
 app.include_router(ocr_v3_router)
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    return PlainTextResponse(str(exc), status_code=400)
+
+
+@app.exception_handler(Exception)
+async def unicorn_exception_handler(request: Request, exc: Exception):
+    return PlainTextResponse(str(exc), status_code=500)
+
 
 # SqlAdmin Settings
 admin = Admin(app, engine, authentication_backend=authentication_backend)

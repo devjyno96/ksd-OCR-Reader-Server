@@ -34,12 +34,30 @@ app.include_router(ocr_v3_router)
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    return PlainTextResponse(str(exc.__traceback__), status_code=400)
+    traceback_str = "".join(
+        ["\n  " + line for line in exc.__traceback__.format().splitlines()]
+    )
+    error_message = f"""
+        HTTP Error {exc.status_code}: {exc.detail}
+
+        Traceback:
+        {traceback_str}
+    """
+    return PlainTextResponse(content=error_message, status_code=400)
 
 
 @app.exception_handler(Exception)
 async def unicorn_exception_handler(request: Request, exc: Exception):
-    return PlainTextResponse(str(exc.__traceback__), status_code=500)
+    traceback_str = "".join(
+        ["\n  " + line for line in exc.__traceback__.format().splitlines()]
+    )
+    error_message = f"""
+        HTTP Error {exc.status_code}: {exc.detail}
+
+        Traceback:
+        {traceback_str}
+    """
+    return PlainTextResponse(content=error_message, status_code=500)
 
 
 # SqlAdmin Settings

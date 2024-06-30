@@ -25,6 +25,10 @@ class Category(Base):
     def category_keywords(self) -> list[str]:
         return [category_keyword.keyword for category_keyword in self.keywords]
 
+    @property
+    def keywords_count(self) -> int:
+        return len(self.category_keywords)
+
 
 class CategoryKeyword(Base):
     __tablename__ = "category_keywords"

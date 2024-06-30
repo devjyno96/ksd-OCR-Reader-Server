@@ -29,6 +29,8 @@ class CategoryCreate(CategoryBase):
 class CategoryShowV1(CategoryBase):
     id: int
 
+    keywords_count: int
+
 
 class CategoryUpdate(CategoryBase):
     id: int

@@ -4,7 +4,7 @@ import time
 
 import httpx
 import requests
-from fastapi import status
+from fastapi import HTTPException, status
 
 from app.naver_clova_ocr.models import NaverClovaOCR
 from app.naver_clova_ocr.schemas import ClovaOCRResponseV3
@@ -33,6 +33,11 @@ class NaverOCRRepository:
 
         if response.status_code != status.HTTP_200_OK:
             logger.error(response.json())
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail={"msg": "call category ocr fail", "clova_reponse": response.json()},
+            )
+
             return None
 
         return ClovaOCRResponseV3.model_validate(response.json())

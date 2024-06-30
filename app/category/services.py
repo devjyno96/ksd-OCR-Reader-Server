@@ -1,3 +1,8 @@
+from sqlalchemy.orm import Session
+
+from app.category.models import Category
+from app.category.repositories import category_keyword_repository
+from app.category.schemas import CategoryKeywordCreate
 from KsdNaverOCRServer.config import NAVER_OCR_DOMAIN_KEY_LIST
 from KsdNaverOCRServer.naver_clova.repositories import (
     get_ocr_key_by_category,
@@ -85,3 +90,9 @@ def handle_ocr_results(result_dict: list[dict]) -> OCRShowV3:
         domain_name=ocr_key["domain_name"],
         result=response,
     )
+
+
+def bulk_udpate_catetory_keywords(db: Session, category: Category, keywords: list[CategoryKeywordCreate]):
+    category_keyword_repository.bulk_remove_by_category(db_session=db, category=category)
+    category_keywords = category_keyword_repository.bulk_create(db_session=db, category_keywords=keywords)
+    return category_keywords

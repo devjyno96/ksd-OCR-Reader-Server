@@ -1,12 +1,11 @@
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, PlainTextResponse
+from fastapi.responses import JSONResponse
 from sqladmin import Admin
 
 from app.admin import authentication_backend
 from app.category.admin import CategoryAdmin, CategoryKeywordAdmin
-from app.category.views import ocr_v3_router
+from app.category.views import catetory_v1_debug_router, ocr_v3_router
 from app.database.core import engine
 from app.ocr.admin import CategoryOCRAdmin, GeneralOCRAdmin
 from app.ocr.views import ocr_router_v4
@@ -30,7 +29,7 @@ app.add_middleware(
 
 app.include_router(ocr_router_v4)
 app.include_router(ocr_v3_router)
-
+app.include_router(catetory_v1_debug_router)
 
 
 @app.exception_handler(HTTPException)

@@ -26,6 +26,10 @@ class CategoryCreate(CategoryBase):
     pass
 
 
+class CategoryShowV1(CategoryBase):
+    id: int
+
+
 class CategoryUpdate(CategoryBase):
     id: int
 
@@ -40,4 +44,8 @@ class CategoryKeywordCreate(CategoryKeywordBase):
 
 
 class CategoryKeywordUpdate(CategoryKeywordBase):
+    id: int
+
+
+class CategoryKeywordShowV1(CategoryKeywordBase):
     id: int

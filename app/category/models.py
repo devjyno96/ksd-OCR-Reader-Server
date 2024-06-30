@@ -35,8 +35,8 @@ class CategoryKeyword(Base):
     id: Mapped[int] = mapped_column(
         Integer, primary_key=True, index=True, comment="Primary key of the category keyword"
     )
+    keyword: Mapped[str] = mapped_column(String, nullable=False, comment="Keyword associated with the category")
     category_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("categories.id"), nullable=False, comment="Foreign key referencing the category"
     )
-    keyword: Mapped[str] = mapped_column(String, nullable=False, comment="Keyword associated with the category")
     category: Mapped["Category"] = relationship("Category", back_populates="keywords")

@@ -135,7 +135,7 @@ def get_all_catetory_v1_debug(db: Session = Depends(get_db)):
 @catetory_v1_debug_router.get(
     "/{category_id}/category-keyword", status_code=status.HTTP_200_OK, response_model=list[CategoryKeywordShowV1]
 )
-def get_catetory_v1_debug(category_id: int, db: Session = Depends(get_db)):
+def get_catetory_keyword_v1_debug(category_id: int, db: Session = Depends(get_db)):
     """
     # Debug 용
     ---

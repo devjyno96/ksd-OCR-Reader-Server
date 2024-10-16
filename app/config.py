@@ -44,5 +44,9 @@ class Settings(BaseSettings):
             path=f"{self.DATABASE_NAME}",
         ).unicode_string()
 
+    # https://logfire.pydantic.dev/docs/integrations/fastapi/?h=fa#opentelemetry-fastapi-instrumentation
+    # https://logfire.pydantic.dev/docs/
+    LOGFIRE_TOKEN: str = ""
+
 
 settings = Settings()

@@ -1,3 +1,4 @@
+import logfire
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -17,6 +18,11 @@ description = """
 version = "2022년 3월 23일 버전"
 
 app = FastAPI(title=title, description=description, version=version)
+
+
+logfire.configure()
+logfire.instrument_fastapi(app)
+
 
 app.add_middleware(
     CORSMiddleware,

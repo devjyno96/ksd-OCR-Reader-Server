@@ -20,7 +20,7 @@ class CategoryOCR(NaverClovaOCR):
     __tablename__ = "category_ocrs"
 
     def __str__(self):
-        return f"id={self.id}, category_id={self.category_id}, category_name={self.category}"
+        return f"id={self.id}, category_id={self.category_id}, category_name={self.category.name}"
 
     id: Mapped[int] = mapped_column(
         Integer, primary_key=True, index=True, comment="Primary key of the category OCR settings"

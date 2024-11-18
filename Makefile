@@ -10,6 +10,9 @@ run:
 deploy:
 	nohup make run
 
+.PHONY: admin-run
+admin-run:
+	@poetry run streamlit run ./app/streamlit_admin.py
 
 .PHONY: lint
 lint:

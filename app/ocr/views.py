@@ -95,14 +95,14 @@ async def process_image_view(request_body: RequestOCRV3, db_session: Session = D
     if general_result is None:
         return "general ocr result is None -> Error"
 
-    category = find_best_matching_category(db_session, general_result)
-    if category is None:
+    categories = find_best_matching_category(db_session, general_result)
+    if categories is []:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={"msg": "category search fail", "general_ocr_result": general_result.model_dump()},
         )
-    category_result = await process_category_ocr(
-        image_url=request_body.image_url, image_format=request_body.file_name_extension, category=category
+    category_result, category = await process_category_ocr(
+        image_url=request_body.image_url, image_format=request_body.file_name_extension, categories=categories
     )
 
     return OCRShowV3(category=category.name, domain_name=category.description, result=category_result)

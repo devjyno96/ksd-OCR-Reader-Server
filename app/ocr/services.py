@@ -1,9 +1,12 @@
+import asyncio
+
 from sqlalchemy.orm import Session
 
 from app.category.models import Category
 from app.category.repositories import category_repository
 from app.naver_clova_ocr.repositories import NaverOCRRepository
 from app.naver_clova_ocr.schemas import ClovaOCRResponseV3
+from app.ocr.models import CategoryOCR
 from app.ocr.repositories import general_ocr_repository
 
 
@@ -19,42 +22,55 @@ async def process_general_ocr(db_session: Session, image_url: str, image_format:
     return result
 
 
-async def process_category_ocr(image_url: str, image_format: str, category: Category) -> ClovaOCRResponseV3:
-    """카테고리 OCR을 처리합니다."""
+async def process_category_ocr(
+    image_url: str, image_format: str, categories: list[Category]
+) -> tuple[ClovaOCRResponseV3, Category]:
+    """카테고리 OCR을 처리하고, 가장 적합한 CategoryOCR을 반환합니다."""
 
-    category_ocr_configs = category.category_ocr_configs
-    results = []
-    for config in category_ocr_configs:
-        result = await NaverOCRRepository().request_ocr_to_naver_clova_api(
-            image_url=image_url, image_format=image_format, naver_clova_ocr=config
+    category_ocr_configs: list[CategoryOCR] = []
+    for category in categories:
+        category_ocr_configs += category.category_ocr_configs
+
+    naver_ocr_repo = NaverOCRRepository()
+
+    tasks = [
+        naver_ocr_repo.request_ocr_to_naver_clova_api(
+            image_url=image_url,
+            image_format=image_format,
+            naver_clova_ocr=config,
         )
-        results.append(result)
+        for config in category_ocr_configs
+    ]
+    results = await asyncio.gather(*tasks)
 
     def get_blank_count(ocr_response: ClovaOCRResponseV3):
         return sum(1 for f in ocr_response.images[0].fields if len(f.inferText) == 0)
 
-    best_result = min(results, key=get_blank_count)
-    return best_result
+    best_index = min(range(len(results)), key=lambda i: get_blank_count(results[i]))
+
+    best_result = results[best_index]
+    best_category_ocr = category_ocr_configs[best_index][0]
+
+    return best_result, best_category_ocr.category
 
 
-def find_best_matching_category(db_session: Session, clova_ocr_response_v3: ClovaOCRResponseV3) -> Category | None:
+def find_best_matching_category(db_session: Session, clova_ocr_response_v3: ClovaOCRResponseV3) -> list[Category]:
     """추출된 텍스트에서 가장 일치하는 카테고리를 찾습니다."""
-    result_keywords = []
-    for fields in clova_ocr_response_v3.images[0].fields:
-        result_keywords.append(fields.inferText)
+    # OCR 응답에서 키워드 추출
+    result_keywords = [fields.inferText for fields in clova_ocr_response_v3.images[0].fields]
 
+    # 데이터베이스에서 카테고리 목록 조회
     categories = category_repository.get_multi(db_session=db_session)
 
-    best_match = None
+    # 각 카테고리와 유사도 점수를 계산하고 정렬
+    sorted_categories = sorted(
+        categories,
+        key=lambda category: calculate_similarity(category.category_keywords, result_keywords),
+        reverse=True,  # 높은 점수 순으로 정렬
+    )
 
-    highest_score = 0
-    for category in categories:
-        score = calculate_similarity(category.category_keywords, result_keywords)
-        if score > highest_score:
-            highest_score = score
-            best_match = category
-
-    return best_match
+    # 가장 높은 점수를 가진 카테고리 반환
+    return sorted_categories[0:3] if sorted_categories else []
 
 
 def calculate_similarity(category_keywords: list[str], target_keywords: list[str]):

@@ -106,7 +106,7 @@ async def process_image_view(request_body: RequestOCRV3, db_session: Session = D
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={"msg": "category search fail", "general_ocr_result": general_result.model_dump()},
         )
-    logfire.info(f"target_categories = {[category.name for category in categories]}")
+    logfire.info(f"target_categories = {[(category.name,category.description) for category in categories]}")
 
     category_result, category = await process_category_ocr(
         image_url=request_body.image_url, image_format=request_body.file_name_extension, categories=categories

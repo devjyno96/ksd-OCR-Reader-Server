@@ -1,3 +1,5 @@
+from logging import basicConfig
+
 import logfire
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,10 +19,11 @@ description = """
 """
 version = "2022년 3월 23일 버전"
 
+
 app = FastAPI(title=title, description=description, version=version)
 
-
 logfire.configure()
+basicConfig(handlers=[logfire.LogfireLoggingHandler()])
 logfire.instrument_fastapi(app)
 
 

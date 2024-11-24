@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Depends, status
 from fastapi.exceptions import HTTPException
 from sqlalchemy.orm import Session
@@ -8,6 +10,8 @@ from app.naver_clova_ocr.schemas import ClovaOCRResponseV3
 from app.ocr.services import find_best_matching_category, process_category_ocr, process_general_ocr
 
 ocr_router_v4 = APIRouter(prefix="/v4")
+
+logger = logging.getLogger(__name__)
 
 
 @ocr_router_v4.post("/ocr", status_code=status.HTTP_201_CREATED, response_model=OCRShowV3)
@@ -101,6 +105,8 @@ async def process_image_view(request_body: RequestOCRV3, db_session: Session = D
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={"msg": "category search fail", "general_ocr_result": general_result.model_dump()},
         )
+    logger.info(f"target_categories = {[category.name for category in categories]}")
+
     category_result, category = await process_category_ocr(
         image_url=request_body.image_url, image_format=request_body.file_name_extension, categories=categories
     )

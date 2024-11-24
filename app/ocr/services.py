@@ -29,7 +29,7 @@ async def process_category_ocr(
 
     category_ocr_configs: list[CategoryOCR] = []
     for category in categories:
-        category_ocr_configs += category.category_ocr_configs
+        category_ocr_configs.extend(category.category_ocr_configs)
 
     naver_ocr_repo = NaverOCRRepository()
 
@@ -46,10 +46,10 @@ async def process_category_ocr(
     def get_blank_count(ocr_response: ClovaOCRResponseV3):
         return sum(1 for f in ocr_response.images[0].fields if len(f.inferText) == 0)
 
-    best_index = min(range(len(results)), key=lambda i: get_blank_count(results[i]))
+    best_index: int = min(range(len(results)), key=lambda i: get_blank_count(results[i]))
 
     best_result = results[best_index]
-    best_category_ocr = category_ocr_configs[best_index][0]
+    best_category_ocr = category_ocr_configs[best_index]
 
     return best_result, best_category_ocr.category
 

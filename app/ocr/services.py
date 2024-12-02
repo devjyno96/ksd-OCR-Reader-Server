@@ -44,7 +44,7 @@ async def process_category_ocr(
     results = await asyncio.gather(*tasks)
 
     # 가장 높은 평균 정확도를 가진 결과 찾기
-    has_table_only = True
+    has_table_only = False
     best_index: int = max(
         range(len(results)),
         key=lambda i: calculate_average_confidence(results[i], has_table_only=has_table_only),

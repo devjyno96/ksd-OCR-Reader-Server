@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.category.models import Category
 from app.category.repositories import category_repository
 from app.naver_clova_ocr.repositories import NaverOCRRepository
-from app.naver_clova_ocr.schemas import ClovaOCRResponseV3
+from app.naver_clova_ocr.schemas import ClovaOCRResponseV3, ImageField
 from app.ocr.models import CategoryOCR
 from app.ocr.repositories import general_ocr_repository
 
@@ -43,15 +43,41 @@ async def process_category_ocr(
     ]
     results = await asyncio.gather(*tasks)
 
-    def get_blank_count(ocr_response: ClovaOCRResponseV3):
-        return sum(1 for f in ocr_response.images[0].fields if len(f.inferText) == 0)
-
-    best_index: int = min(range(len(results)), key=lambda i: get_blank_count(results[i]))
-
+    # 가장 높은 평균 정확도를 가진 결과 찾기
+    has_table_only = True
+    best_index: int = max(
+        range(len(results)),
+        key=lambda i: calculate_average_confidence(results[i], has_table_only=has_table_only),
+    )
     best_result = results[best_index]
     best_category_ocr = category_ocr_configs[best_index]
 
     return best_result, best_category_ocr.category
+
+
+def calculate_average_confidence(response: ClovaOCRResponseV3, has_table_only: bool = False) -> float:
+    """
+    OCR 응답의 평균 정확도를 계산합니다.
+    :param response: ClovaOCRResponseV3 객체
+    :param has_table_only: True일 경우 table confidence만 고려, False일 경우 cell confidence 포함
+    :return: 평균 정확도
+    """
+    if not response.images:
+        return 0.0
+
+    if not response.is_successed:
+        return 0.0
+
+    total_image_fields: list[ImageField] = []
+    for image in response.images:
+        total_image_fields.append(image.title)
+
+        if not has_table_only:
+            total_image_fields.extend(image.fields)
+
+    total_confidence = sum(image_field.inferConfidence for image_field in total_image_fields)
+    total_count = len(total_image_fields)
+    return total_confidence / total_count if total_count > 0 else 0.0
 
 
 def find_best_matching_category(db_session: Session, clova_ocr_response_v3: ClovaOCRResponseV3) -> list[Category]:
